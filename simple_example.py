@@ -1,21 +1,43 @@
 import CLUE
+import numpy as np
 
-# Parameters
-parameters = {
-"agents":["True_Policy_Agent","Baseline_Agent","NAF","CLUE"], # The agents to be tested
-"trials":80000, # The number of consecutive trials over which an agent learns
-"runs":100, # The number of runs over which the reward curves etc. are averaged
-"eps_start":1, # The starting value of the epsilon parameter
-"eps_end":0, # The final value of epsilon
-"eps_fraction":0.8, # The fraction of the total number of trials over which epsilon decays from initial to final value
-"initial_estimate":0, # Initial value of Q(s,a) for each s,a
-"moving_average_weight":"count_based", # Weight of moving average for learning, often denoted alpha. "count_based" = 1/k
-"initial_beta":[1,1], # The initial [alpha,beta] values for estimating every expert's reliability
-"prob_threshold":0.25, # T parameter, the threshold under which agent will never follow expert advice
-"expert_interval":10, # mu, the minimum number of trials between advice givings
-"expert_tolerance": 0.01, # gamma, the expert's tolerance for improvement
-"display":True, # Whether or not the experiment will print out updates
-"display_interval":10 # Number of runs between displays during experiment
-}
+'''
+ENVIRONMENT
+'''
+# Create a random environment with 7 state variables (|S|=128)
+# and 3 action variables (|A|=8)
+env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3)
 
-env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3,seed=1)
+'''
+EXPERIMENT DETAILS
+'''
+trials = 10000 # Number of trials each run
+runs = 5 # Number of runs, each run the agent learns from scratch
+
+'''
+AGENTS
+'''
+# Create a True Policy Agent
+true_policy_agent = CLUE.TruePolicyAgent(env)
+
+# Create a Baseline (action-value epsilon-greedy) Agent
+baseline_agent = CLUE.BaselineAgent(env,trials)
+
+# Create a Naive Advice Follower (NAF) with a default action-value epsilon-greedy agent
+naf_agent = CLUE.NaiveAdviceFollower(env,trials=trials)
+
+# Cretae a CLUE Agent with a default action-value epsilon-greedy agent
+clue_agent = CLUE.ClueAgent(env,trials=trials)
+
+# Add all to a list
+agents = [true_policy_agent,baseline_agent,naf_agent,clue_agent]
+
+'''
+PANEL OF EXPERTS
+'''
+#TODO
+
+'''
+RUN EXPERIMENT
+'''
+#TODO

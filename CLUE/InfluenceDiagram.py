@@ -10,6 +10,7 @@ class InfluenceDiagram():
 
     Assumes:
         No decision variable is a parent to a chance variable
+        A single utility node, called "reward"
 
     '''
     def __init__(self,**kwargs):
@@ -99,6 +100,7 @@ class InfluenceDiagram():
         Resets the environments current state and samples a new trial
         '''
         self.state = {} # Reset to empty state
+        self.state_vars = {} # Reset variables
         return self.sample() # Sample new state
 
     def sample(self):

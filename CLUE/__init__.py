@@ -7,7 +7,19 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 # Environments
+from InfluenceDiagram import InfluenceDiagram
 from RandomSSDP import RandomSSDP
+
+# Agents
+from Agent import Agent
+from TruePolicyAgent import TruePolicyAgent
+from BaselineAgent import BaselineAgent
+from NaiveAdviceFollower import NaiveAdviceFollower
+from ClueAgent import ClueAgent
+
+# Helpers
+from Utility import Utility
+from StateTable import StateTable
 
 # Environment keys
 envs = {
@@ -31,3 +43,4 @@ def make(name,**kwargs):
         error_message = name+" not recognised!"
     else:
         return envs[name](**kwargs)
+    raise Exception(error_message)
