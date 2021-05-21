@@ -43,4 +43,4 @@ RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
 rewards,rhos = CLUE.Experiment.panel_comparison(env,agents,panels,trials,runs,display=True)
-# TODO: save to csv
+# TODO: save to csvs
