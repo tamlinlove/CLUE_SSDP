@@ -49,68 +49,68 @@ class Utility:
             error_message = "Invalid alpha: "+str(alpha)
             raise Exception(error_message)
 
-        def __str__(self):
-            '''
-            Display utility function
-            '''
-            text = ""
-            for i in range(self.size):
-                text += str(self.index_to_assignment(i)) + " : " + str(self.values[i]) + "\n"
-            return text
+    def __str__(self):
+        '''
+        Display utility function
+        '''
+        text = ""
+        for i in range(self.size):
+            text += str(self.index_to_assignment(i)) + " : " + str(self.values[i]) + "\n"
+        return text
 
-        def assignment_to_index(self,assignment):
-            '''
-            Takes in an assignment, returns the corresponding index
+    def assignment_to_index(self,assignment):
+        '''
+        Takes in an assignment, returns the corresponding index
 
-            Input:
-                assignment - a dict mapping node names to values in their domains
+        Input:
+            assignment - a dict mapping node names to values in their domains
 
-            Output:
-                index - an int index corresponding to the assignment
-            '''
-            index = 0
-            for node in self.nodes:
-                index += self.domains[node].index(assignment[node])*self.offsets[node]
-            return index
+        Output:
+            index - an int index corresponding to the assignment
+        '''
+        index = 0
+        for node in self.nodes:
+            index += self.domains[node].index(assignment[node])*self.offsets[node]
+        return index
 
-        def get_value(self,assignment):
-            '''
-            Gets the value stored for a given assignment
+    def get_value(self,assignment):
+        '''
+        Gets the value stored for a given assignment
 
-            Input:
-                assignment - a dict mapping node name to a value in the domain
-            Output:
-                value - the value of the assignment
-            '''
-            return self.values[self.assignment_to_index(assignment)]
+        Input:
+            assignment - a dict mapping node name to a value in the domain
+        Output:
+            value - the value of the assignment
+        '''
+        return self.values[self.assignment_to_index(assignment)]
 
-        def index_to_assignment(self,index):
-            '''
-            Takes in an index, returns the corresponding assignment
+    def index_to_assignment(self,index):
+        '''
+        Takes in an index, returns the corresponding assignment
 
-            Input:
-                index - an integer
+        Input:
+            index - an integer
 
-            Output:
-                assignment - a dict mapping node names to values in their domains
-            '''
-            assignment = {}
-            for i in range(len(self.nodes)-1,-1,-1):
-                assignment[self.nodes[i]] = self.domains[self.nodes[i]][index % len(self.domains[self.nodes[i]])]
-                index = index // len(self.domains[self.nodes[i]])
-            return assignment
+        Output:
+            assignment - a dict mapping node names to values in their domains
+        '''
+        assignment = {}
+        for i in range(len(self.nodes)-1,-1,-1):
+            assignment[self.nodes[i]] = self.domains[self.nodes[i]][index % len(self.domains[self.nodes[i]])]
+            index = index // len(self.domains[self.nodes[i]])
+        return assignment
 
-        def update(self,trial):
-            '''
-            Update utility based on latest trial
+    def update(self,trial):
+        '''
+        Update utility based on latest trial
 
-            Input:
-                trial - dict mapping node names (including reward) to values
-            '''
-            index = self.assignment_to_index(trial)
-            if self.count_based:
-                self.counts[index] += 1
-                alpha = 1/self.counts[index]
-            else:
-                alpha = self.alpha
-            self.values[index] = self.values[index] + alpha*(trial["reward"]-self.values[index])
+        Input:
+            trial - dict mapping node names (including reward) to values
+        '''
+        index = self.assignment_to_index(trial)
+        if self.count_based:
+            self.counts[index] += 1
+            alpha = 1/self.counts[index]
+        else:
+            alpha = self.alpha
+        self.values[index] = self.values[index] + alpha*(trial["reward"]-self.values[index])

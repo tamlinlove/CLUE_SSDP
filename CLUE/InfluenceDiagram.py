@@ -141,18 +141,16 @@ class InfluenceDiagram():
 
         Usage:
             action = {"A1":True,"A2":False}
-            env.step(action)
+            reward = env.step(action)
         Input:
             action - a dict mapping action node names to values
         Output:
-            state - a dict mapping state and action node names to values
             reward - the reward obtained by inputting the action
         '''
         for node in action:
-            self.state[node] = action[node]
             self.state_vars[self.variables[node]] = action[node]
 
         # Get reward
         reward = self.factors["reward"].get_value(self.state_vars)
 
-        return self.state,reward
+        return reward

@@ -44,9 +44,6 @@ class BaselineAgent(Agent):
         self.Q0 = Q0
         self.alpha = alpha
 
-        # Reset for fresh run
-        self.reset()
-
     def act(self,state,explore=True):
         '''
         Select an action given a state

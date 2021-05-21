@@ -48,6 +48,7 @@ class ClueAgent(Agent):
             else:
                 error_message = "Invalid agent passed to CLUE"
                 raise Exception(error_message)
+        self.history = {"rho":{}}
 
     def act(self,state,explore=True):
         '''

@@ -17,20 +17,13 @@ runs = 5 # Number of runs, each run the agent learns from scratch
 '''
 AGENTS
 '''
-# Create a True Policy Agent
-true_policy_agent = CLUE.TruePolicyAgent(env)
-
-# Create a Baseline (action-value epsilon-greedy) Agent
-baseline_agent = CLUE.BaselineAgent(env,trials)
-
-# Create a Naive Advice Follower (NAF) with a default action-value epsilon-greedy agent
-naf_agent = CLUE.NaiveAdviceFollower(env,trials=trials)
-
-# Cretae a CLUE Agent with a default action-value epsilon-greedy agent
-clue_agent = CLUE.ClueAgent(env,trials=trials)
-
-# Add all to a list
-agents = [true_policy_agent,baseline_agent,naf_agent,clue_agent]
+# Create some agents, store in dictionary
+agents = {
+    "True Policy Agent":CLUE.TruePolicyAgent(env), # True policy agent
+    "Baseline Agent":CLUE.BaselineAgent(env,trials), # Action-value epsilon-greedy
+    "NAF":CLUE.NaiveAdviceFollower(env,trials=trials), # Naive advice follower, with default agent
+    "CLUE":CLUE.ClueAgent(env,trials=trials) # CLUE, with default agent
+}
 
 '''
 PANEL OF EXPERTS
@@ -48,4 +41,6 @@ panels = CLUE.make_panels(panel_dict,env)
 '''
 RUN EXPERIMENT
 '''
-#TODO
+# Run the panel comparison experiment
+rewards,rhos = CLUE.Experiment.panel_comparison(env,agents,panels,trials,runs,display=True)
+# TODO: save to csv
