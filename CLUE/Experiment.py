@@ -2,6 +2,8 @@
 A bunch of methods for running and facilitating experiments
 '''
 import numpy as np
+import os
+import csv
 
 def make_panel_comparison_dicts(agents,panels,trials,runs):
     '''
@@ -128,3 +130,38 @@ def run_standard(env,agent,trials):
         agent.learn(state,action,reward) # Perform any learning
         rewards.append(reward) # Add reward to list
     return rewards
+
+def save_panel_comparison_to_csv(rewards,rhos,env,agents,panels,trials,runs,directory="panel_comparison"):
+    base_dir = "results/"+env.name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+    print("Saving rewards to csv...")
+    file_dir = base_dir+"rewards/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for agent in agents:
+        if agents[agent].takes_advice():
+            for panel in panels:
+                f = open(file_dir+agent+"_"+panel.name+".csv","w",newline="")
+                writer = csv.writer(f)
+                writer.writerow([agent,panel.name])
+                for run in range(runs):
+                    writer.writerow(rewards[agent][panel.name][run,:])
+                f.close()
+        else:
+            f = open(file_dir+agent+".csv","w",newline="")
+            writer = csv.writer(f)
+            writer.writerow([agent,None])
+            for run in range(runs):
+                writer.writerow(rewards[agent][run,:])
+            f.close()
+    print("Saving rhos to csv...")
+    file_dir = base_dir+"rhos/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for agent in agents:
+        if agents[agent].get_history() is not None:
+            for panel in panels:
+                for expert in panel.experts:
+                    f = open(file_dir+agent+"_"+panel.name+"_"+expert+".csv","w",newline="")
+                    writer = csv.writer(f)
+                    writer.writerow([agent,panel.name,expert])
+                    for run in range(runs):
+                        writer.writerow(rhos[agent][panel.name][expert][run,:])
+                    f.close()

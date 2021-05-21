@@ -59,9 +59,9 @@ class UnreliableExpert(Expert):
             return optimal_action
         else: # Give incorrect advice (any advice except optimal action)
             optimal_index = self.action_table.assignment_to_index(optimal_action) # Optimal index
-            all_indices = list(np.arange(self.action_table.size)) # Fetch all indices
-            suboptimal_indices = all_indices.remove(optimal_index) # Remove optimal index
-            index = np.random.choice(suboptimal_indices) # Choose suboptimal index
+            indices = list(np.arange(self.action_table.size)) # Fetch all indices
+            indices.remove(optimal_index) # Remove optimal index
+            index = np.random.choice(indices) # Choose suboptimal index
             suboptimal_action = self.action_table.index_to_assignment(index) # Get corresponding action
             return suboptimal_action
 
