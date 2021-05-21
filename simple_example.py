@@ -35,7 +35,15 @@ agents = [true_policy_agent,baseline_agent,naf_agent,clue_agent]
 '''
 PANEL OF EXPERTS
 '''
-#TODO
+# Dictionary of panels to be tested
+panel_dict = {
+"Single_Bad":[0],
+"Single_Good":[1],
+"Varied_Panel":[0,0.1,0.25,0.5,0.75,0.9,1]
+}
+
+# Create list of panels
+panels = CLUE.make_panels(panel_dict,env)
 
 '''
 RUN EXPERIMENT

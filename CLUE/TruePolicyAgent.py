@@ -96,7 +96,7 @@ class TruePolicyAgent(Agent):
         '''
         # Convert state and action to use variables as keys
         state_vars = {}
-        for node in self.env.pre_observation_space:
+        for node in self.env.state_space:
             state_vars[self.env.variables[node]] = state[node]
         for node in action:
             state_vars[self.env.variables[node]] = action[node]
