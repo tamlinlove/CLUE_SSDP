@@ -12,7 +12,7 @@ env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3)
 EXPERIMENT DETAILS
 '''
 trials = 10000 # Number of trials each run
-runs = 5 # Number of runs, each run the agent learns from scratch
+runs = 10 # Number of runs, each run the agent learns from scratch
 
 '''
 AGENTS
