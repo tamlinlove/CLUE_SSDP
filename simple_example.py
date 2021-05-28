@@ -42,6 +42,18 @@ panels = CLUE.make_panels(panel_dict,env)
 RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
+print("======Running experiment======")
 rewards,rhos = CLUE.Experiment.panel_comparison(env,agents,panels,trials,runs,display=True)
 # Save results to csv
+print("======Saving results======")
 CLUE.Experiment.save_panel_comparison_to_csv(rewards,rhos,env,agents,panels,trials,runs)
+# Plot results
+print("======Plotting graphs======")
+base_path = env.name+"/panel_comparison/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+panel_titles = {
+"Single_Good":"Single Reliable Expert\n($\\rho_{true}=1$)",
+"Single_Bad":"Single Unreliable Expert\n($\\rho_{true}=0$)",
+"Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
+}
+reward_range = [-1,1]
+CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles)

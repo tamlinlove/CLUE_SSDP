@@ -26,6 +26,7 @@ from Panel import Panel
 from Utility import Utility
 from StateTable import StateTable
 import Experiment
+import Plot
 
 # Environment keys
 envs = {
