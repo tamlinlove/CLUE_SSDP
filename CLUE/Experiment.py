@@ -5,6 +5,82 @@ import numpy as np
 import os
 import csv
 
+from TruePolicyAgent import TruePolicyAgent
+from BaselineAgent import BaselineAgent
+from NaiveAdviceFollower import NaiveAdviceFollower
+from ClueAgent import ClueAgent
+
+from RandomSSDP import RandomSSDP
+
+from Panel import Panel
+
+# Dict mapping agent name to whether or not they take panel advice
+takes_advice = {
+    "Baseline Agent":False,
+    "CLUE":True,
+    "NAF":True,
+    "True Policy Agent":False
+}
+
+# Dict mapping agent name to whether or not they store rho history
+keeps_rho_history = {
+    "Baseline Agent":False,
+    "CLUE":True,
+    "NAF":False,
+    "True Policy Agent":False
+}
+
+def make_agents(agent_list,env,trials):
+    '''
+    Take in a list of agent names and return a dict of agents
+
+    Input:
+        agent_list - list of agents, each item must be one of the following
+            "Baseline Agent" - baseline agent
+            "CLUE" - CLUE agent
+            "NAF" - NAF agent
+            "True Policy Agent" - true policy agent
+        env - instance of InfluenceDiagram class representing environment
+        trials - number of trials
+    Output:
+        agents - dict mapping agent name to agent object
+    '''
+    agents = {}
+    for agent in agent_list:
+        if agent == "Baseline Agent":
+            agents[agent] = BaselineAgent(env,trials)
+        elif agent == "CLUE":
+            agents[agent] = ClueAgent(env,trials=trials)
+        elif agent == "NAF":
+            agents[agent] = NaiveAdviceFollower(env,trials=trials)
+        elif agent == "True Policy Agent":
+            agents[agent] = TruePolicyAgent(env)
+    return agents
+
+def make_panels(panel_dict,env,mu=10,gamma=0.01):
+    '''
+    Make a list of panels of experts
+
+    Input:
+        panel_dict - dict mapping panel name to list of true reliabilities
+        env - instance of InfluenceDiagram class representing environment
+        mu - interval parameter (number of trials between advice givings)
+            default: 10
+        gamma - tolerance parameter (regret over past trials since advice must be greater than gamma)
+            default: 0.01
+
+    Output:
+        panels - list of Panel objects
+
+    Todo:
+        allow for each expert in a panel to have different parameters
+    '''
+    oracle = TruePolicyAgent(env) # Oracle used to retrieve best advice for each expert
+    panels = [] # List of panels
+    for panel in panel_dict:
+        panels.append(Panel(env,panel,oracle,panel_dict[panel],mu,gamma)) # Create Panel object
+    return panels
+
 def make_panel_comparison_dicts(agents,panels,trials,runs):
     '''
     Initialise dictionaries for panel comparison experiment
@@ -86,6 +162,65 @@ def panel_comparison(env,agents,panels,trials,runs,display=False,display_interva
                 rewards[agent][r,:] = run_standard(env,agents[agent],trials)
     return rewards,rhos
 
+def panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=False,display_interval=10,num_chance=10,num_decision=3):
+    '''
+    Run an experiment comparing rewards obtained over trials by each agent-panel configuration
+    Each run on a different randomly generated environment
+
+    Input:
+        agent_list - list of agent names, used to generate agents (see make_agents in __init__.py)
+        panel_dict - dict mapping panel names to list of reliabilities
+        trials - number of trials for each run
+        runs - number of runs over which rewards will be averaged
+        display - boolean. Whether or not the experiment will print out updates
+            default: False
+        display_interval - if display = True, this determines the number of runs between printouts
+            default: True
+        num_chance - number of state variables
+            default: 10
+        num_decision - number of action variables
+            default: 3
+    '''
+    # Initialise empty dicts for rewards and rho
+    rewards = {}
+    rhos = {}
+
+    for agent in agent_list:
+        if takes_advice[agent]: # Panel has an effect
+            rewards[agent] = {}
+            if keeps_rho_history[agent]: # Agent keeps track of rhos
+                rhos[agent] = {}
+            for panel in panel_dict:
+                rewards[agent][panel] = np.zeros((runs,trials))
+                if keeps_rho_history[agent]:
+                    rhos[agent][panel] = {}
+                    for expert in panel_dict[panel]:
+                        rhos[agent][panel][str(expert)] = np.zeros((runs,trials))
+        else:
+            rewards[agent] = np.zeros((runs,trials))
+    # Run experiment
+    for r in range(runs):
+        if display and r % display_interval == 0:
+            print("Run "+str(r))
+        # Initialise environment
+        env = RandomSSDP(num_chance=num_chance,num_decision=num_decision,seed=r)
+        # Initialise agents
+        agents = make_agents(agent_list,env,trials)
+        # Initialise panels
+        panels = make_panels(panel_dict,env)
+        # Run
+        for agent in agents:
+            if agents[agent].takes_advice(): # Panels have an effect
+                for panel in panels:
+                    rewards[agent][panel.name][r,:] = run_panel(env,agents[agent],panel,trials)
+                    history = agents[agent].get_history()
+                    if history is not None:
+                        for expert in panel.experts:
+                            rhos[agent][panel.name][expert][r,:] = history["rho"][expert]
+            else: # Panels don't matter
+                rewards[agent][r,:] = run_standard(env,agents[agent],trials)
+    return rewards,rhos
+
 def run_panel(env,agent,panel,trials):
     '''
     Perform one SSDP learning session with a single agent and a panel of experts
@@ -131,8 +266,8 @@ def run_standard(env,agent,trials):
         rewards.append(reward) # Add reward to list
     return rewards
 
-def save_panel_comparison_to_csv(rewards,rhos,env,agents,panels,trials,runs,directory="panel_comparison"):
-    base_dir = "results/"+env.name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+def save_panel_comparison_to_csv(rewards,rhos,env_name,agents,panels,trials,runs,directory="panel_comparison"):
+    base_dir = "results/"+env_name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
     print("Saving rewards to csv...")
     file_dir = base_dir+"rewards/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
@@ -164,4 +299,40 @@ def save_panel_comparison_to_csv(rewards,rhos,env,agents,panels,trials,runs,dire
                     writer.writerow([agent,panel.name,expert])
                     for run in range(runs):
                         writer.writerow(rhos[agent][panel.name][expert][run,:])
+                    f.close()
+
+def save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory):
+    env_name = "Random ("+str(num_chance)+","+str(num_decision)+")"
+    base_dir = "results/"+env_name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+    print("Saving rewards to csv...")
+    file_dir = base_dir+"rewards/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for agent in agent_list:
+        if takes_advice[agent]:
+            for panel in panel_dict:
+                f = open(file_dir+agent+"_"+panel+".csv","w",newline="")
+                writer = csv.writer(f)
+                writer.writerow([agent,panel])
+                for run in range(runs):
+                    writer.writerow(rewards[agent][panel][run,:])
+                f.close()
+        else:
+            f = open(file_dir+agent+".csv","w",newline="")
+            writer = csv.writer(f)
+            writer.writerow([agent,None])
+            for run in range(runs):
+                writer.writerow(rewards[agent][run,:])
+            f.close()
+    print("Saving rhos to csv...")
+    file_dir = base_dir+"rhos/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for agent in agent_list:
+        if keeps_rho_history[agent]:
+            for panel in panel_dict:
+                for expert in panel_dict[panel]:
+                    f = open(file_dir+agent+"_"+panel+"_"+str(expert)+".csv","w",newline="")
+                    writer = csv.writer(f)
+                    writer.writerow([agent,panel,expert])
+                    for run in range(runs):
+                        writer.writerow(rhos[agent][panel][str(expert)][run,:])
                     f.close()
