@@ -30,7 +30,7 @@ keeps_rho_history = {
     "True Policy Agent":False
 }
 
-def make_agents(agent_list,env,trials):
+def make_agents(agent_list,env,trials,**kwargs):
     '''
     Take in a list of agent names and return a dict of agents
 
@@ -42,19 +42,20 @@ def make_agents(agent_list,env,trials):
             "True Policy Agent" - true policy agent
         env - instance of InfluenceDiagram class representing environment
         trials - number of trials
+        **kwargs - passed to each agent initialisation
     Output:
         agents - dict mapping agent name to agent object
     '''
     agents = {}
     for agent in agent_list:
         if agent == "Baseline Agent":
-            agents[agent] = BaselineAgent(env,trials)
+            agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
-            agents[agent] = ClueAgent(env,trials=trials)
+            agents[agent] = ClueAgent(env,trials=trials,**kwargs)
         elif agent == "NAF":
-            agents[agent] = NaiveAdviceFollower(env,trials=trials)
+            agents[agent] = NaiveAdviceFollower(env,trials=trials,**kwargs)
         elif agent == "True Policy Agent":
-            agents[agent] = TruePolicyAgent(env)
+            agents[agent] = TruePolicyAgent(env,**kwargs)
     return agents
 
 def make_panels(panel_dict,env,mu=10,gamma=0.01):
@@ -221,6 +222,57 @@ def panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=False
                 rewards[agent][r,:] = run_standard(env,agents[agent],trials)
     return rewards,rhos
 
+def regret_test(env,agents,panels,trials,runs,display=False,display_interval=10):
+    '''
+    Run each agent and stores regret
+
+    Input:
+        env - instance of InfluenceDiagram class representing environment
+        agents - dict mapping agent name to agent object
+        panels - dict mapping panel name to panel object
+        trials - number of trials
+        runs - number of runs
+        display - boolean. Whether or not the experiment will print out updates
+        display_interval - if display = True, this determines the number of runs between printouts
+    Output:
+        regret - dict mapping agents and panels to array of regret
+            regret[agent][panel] = array of size runs
+    '''
+    # Initialise dict
+    regret = {}
+    for agent in agents:
+        if agents[agent].takes_advice():
+            regret[agent] = {}
+            for panel in panels:
+                regret[agent][panel] = []
+        else:
+            regret[agent] = []
+
+    # Initialise oracle
+    oracle = TruePolicyAgent(env)
+
+    # Run experiments
+    for agent in agents:
+        if agents[agent].takes_advice(): # Panels matter
+            for panel in panels:
+                if display:
+                    print("==="+agent+" : "+panel.name+"===")
+                for r in range(runs):
+                    if display and r % display_interval == 0:
+                        print("Run "+str(r))
+                    this_regret = run_panel_regret(env,agents[agent],panel,trials,oracle)
+                    regret[agent][panel].append(this_regret)
+        else: # Panels don't matter
+            if display:
+                print("==="+agent+"===")
+            for r in range(runs):
+                if display and r % display_interval == 0:
+                    print("Run "+str(r))
+                this_regret = run_standard_regret(env,agents[agent],trials,oracle)
+                regret[agent].append(this_regret)
+    return regret
+
+
 def run_panel(env,agent,panel,trials):
     '''
     Perform one SSDP learning session with a single agent and a panel of experts
@@ -245,6 +297,34 @@ def run_panel(env,agent,panel,trials):
         rewards.append(reward) # Add reward to list
     return rewards
 
+def run_panel_regret(env,agent,panel,trials,oracle):
+    '''
+    Perform one SSDP learning session with a single agent and a panel of experts
+    Store regret
+
+    Input:
+        env - instance of InfluenceDiagram representing environment
+        agent - instance of Agent
+        panel - instance of Panel
+        trials - number of trials
+        oracle - instance of TruePolicyAgent
+    Output:
+        regret - regret accumulated this run
+    '''
+    regret = 0
+    agent.reset(panel) # Reset agent to forget any older training
+    panel.reset() # Reset each expert in the panel
+    for i in range(trials): # Loop through each trial
+        state = env.reset() # Reset the environment to an empty state, then sample initial observations
+        action = agent.act(state) # Compute the action to take
+        reward = env.step(action) # Feed action to environment, get reward
+        advice = panel.advise(state,action,reward) # Each expert may or may not advise the agent
+        agent.learn(state,action,reward,advice) # Perform some learning
+        oracle_action = oracle.act(state) # Get optimal action
+        oracle_reward = oracle.expected_utility(state,oracle_action) # Get max reward
+        regret += oracle_reward - reward # Calculate regret, add to running total
+    return regret
+
 def run_standard(env,agent,trials):
     '''
     Perform one SSDP learning session with a single agent and no experts
@@ -266,9 +346,52 @@ def run_standard(env,agent,trials):
         rewards.append(reward) # Add reward to list
     return rewards
 
+def run_standard_regret(env,agent,trials,oracle):
+    '''
+    Perform one SSDP learning session with a single agent and no experts
+
+    Input:
+        env - instance of InfluenceDiagram representing environment
+        agent - instance of Agent
+        trials - number of trials
+        oracle - instance of TruePolicyAgent
+    Output:
+        regret - regret accumulated this run
+    '''
+    regret = 0
+    agent.reset() # Reset agent to forget any older training
+    for i in range(trials): # Loop through each trial
+        state = env.reset() # Reset the environment to an empty state, then sample initial observations
+        action = agent.act(state) # Compute the action to take
+        reward = env.step(action) # Feed action to environment, get reward
+        agent.learn(state,action,reward) # Perform any learning
+        oracle_action = oracle.act(state) # Get optimal action
+        oracle_reward = oracle.expected_utility(state,oracle_action) # Get max reward
+        regret += oracle_reward - reward # Calculate regret, add to running total
+    return regret
+
+def save_beta_param_test_to_csv(regrets,env_name,agents,panels,trials,runs,baseline="Baseline Agent",directory="beta_param_test"):
+    base_dir = "results/"+env_name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+    file_dir = base_dir+"beta_param_test/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    f = open(file_dir+"regrets.csv","w",newline="")
+    writer = csv.writer(f)
+    # Save regrets
+    for agent in agents:
+        if agents[agent].takes_advice():
+            for panel in panels:
+                if agents[agent].get_history() is not None:
+                    row = [agent,panel.name,str(agents[agent].initial_estimate[0]),str(agents[agent].initial_estimate[1])]
+                else:
+                    row = [agent,panel.name,"",""]
+                writer.writerow(row+regrets[agent][panel])
+        else:
+            row = [agent,"","",""]
+            writer.writerow(row+regrets[agent])
+    f.close()
+
 def save_panel_comparison_to_csv(rewards,rhos,env_name,agents,panels,trials,runs,directory="panel_comparison"):
     base_dir = "results/"+env_name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
-    print("Saving rewards to csv...")
     file_dir = base_dir+"rewards/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
     for agent in agents:
