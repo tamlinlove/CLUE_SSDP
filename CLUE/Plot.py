@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 import statsmodels.api as sm # for smoothing
+from mpl_toolkits.axes_grid1 import AxesGrid
 
 # For Latex
 plt.rcParams.update({
@@ -117,6 +118,121 @@ def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None
             f.close()
 
     return reward_means,reward_low,reward_high,takes_advice,agents,panels
+
+def plot_beta_heatmap(base_path,alphas,betas,panel_titles,baseline="Baseline Agent",rounding=1,vrange=None):
+    # Read in regrets
+    f = open("results/"+base_path+"regrets.csv","r",newline="")
+    reader = csv.reader(f, delimiter=',')
+
+    regrets = {}
+    takes_advice = {}
+    has_beta = {}
+    baseline_regret = 0
+    baseline_regret_matrix = np.zeros((len(alphas),len(betas)))
+    for line in reader:
+        agent = line[0]
+        panel = line[1]
+        a = line[2]
+        b = line[3]
+        mean_regret = np.mean(np.array(line[4:],dtype=float))
+        if agent not in regrets: # First time seeing this agent
+            if panel == "": # No panel
+                takes_advice[agent] = False
+                has_beta[agent] = False
+                regrets[agent] = mean_regret
+                if agent == baseline:
+                    baseline_regret = mean_regret
+                    baseline_regret_matrix = np.ones((len(alphas),len(betas)))*baseline_regret
+            else: # Uses panel
+                takes_advice[agent] = True
+                regrets[agent] = {}
+                if a == "": # Doesn't have beta distribution
+                    has_beta[agent] = False
+                    regrets[agent][panel] = mean_regret
+                else: # Uses beta distribution
+                    has_beta[agent] = True
+                    regrets[agent][panel] = np.zeros((len(alphas),len(betas)))
+                    regrets[agent][panel][alphas.index(float(a))][betas.index(float(b))] = mean_regret
+        else: # Agent already in dict
+            if a == "": # Doesn't have beta distribution
+                regrets[agent][panel] = mean_regret
+            else: # Uses beta distribution
+                if panel in regrets[agent]: # Panel already seen before
+                    regrets[agent][panel][alphas.index(float(a))][betas.index(float(b))] = mean_regret
+                else: # Never encountered agent-panel pair
+                    regrets[agent][panel] = np.zeros((len(alphas),len(betas)))
+                    regrets[agent][panel][alphas.index(float(a))][betas.index(float(b))] = mean_regret
+    f.close()
+
+    # Calculate differences
+    regret_vals = {}
+    regret_diffs = {}
+    for agent in regrets:
+        if takes_advice[agent]:
+            if has_beta[agent]:
+                regret_vals[agent] = {}
+                regret_diffs[agent] = {}
+            for panel in regrets[agent]:
+                if has_beta[agent]:
+                    print(agent+" - "+panel+" : "+str(regrets[agent][panel]))
+                    regret_vals[agent][panel] = regrets[agent][panel]
+                    regret_diffs[agent][panel] = regrets[agent][panel] - baseline_regret_matrix
+                else:
+                    print(agent+" - "+panel+" : "+str(regrets[agent][panel]))
+        else:
+            print(agent+" : "+str(regrets[agent]))
+
+    # Plot
+    fig_path = "figures/"+base_path
+    for agent in regret_vals:
+        plot_heatmap(fig_path,agent+"_regrets",panel_titles,regret_vals[agent],"$\\alpha$",alphas,"$\\beta$",betas,rounding=rounding,vrange=vrange)
+        plot_heatmap(fig_path,agent+"_regret_diffs",panel_titles,regret_diffs[agent],"$\\alpha$",alphas,"$\\beta$",betas,rounding=rounding,vrange=vrange)
+
+def plot_heatmap(fig_path,filename,panel_titles,vals,x_label,x_vals,y_label,y_vals,rounding=1,rev=True,vrange=None):
+    os.makedirs(os.path.dirname(fig_path), exist_ok=True)
+    panels = list(panel_titles.keys())
+    if vrange is None:
+        mins = []
+        maxs = []
+        for panel in panels:
+            mins.append(np.min(vals[panel]))
+            maxs.append(np.max(vals[panel]))
+        vmin = np.min(np.array(mins))
+        vmax = np.max(np.array(maxs))
+    else:
+        vmin = vrange[0]
+        vmax = vrange[1]
+    fig = plt.figure(figsize=(4*len(panels), 4))
+    grid = AxesGrid(fig, 111,
+                nrows_ncols=(1, len(panels)),
+                axes_pad=0.05,
+                share_all=True,
+                label_mode="L",
+                cbar_location="right",
+                cbar_mode="single",
+                )
+    if rev:
+        cmap = "RdYlGn_r"
+    else:
+        cmap = "RdYlGn"
+    for i in range(len(panels)):
+        ax = grid[i]
+        panel = panels[i]
+        val = vals[panel]
+        im = ax.imshow(val,vmin=vmin,vmax=vmax,origin="lower",cmap=cmap)
+        ax.set_title(panel_titles[panel])
+        ax.set_xlabel(x_label)
+        ax.set_xticks(range(len(x_vals)))
+        ax.set_xticklabels(x_vals)
+        ax.set_ylabel(y_label)
+        ax.set_yticks(range(len(y_vals)))
+        ax.set_yticklabels(y_vals)
+        for (j,k),label in np.ndenumerate(np.round(val,rounding)):
+            ax.text(k,j,label,ha='center',va='center',fontweight="bold")
+    grid.cbar_axes[0].colorbar(im)
+    plt.savefig(fig_path+filename)
+    plt.close()
+
 
 def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None]):
     '''

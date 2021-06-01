@@ -57,5 +57,13 @@ CLUE.Experiment.save_beta_param_test_to_csv(regrets,env.name,agents,panels,trial
 '''
 PLOT RESULTS
 '''
+# Set path in figures/ directory
+base_path = env.name+"/beta_param_test/"+str(trials)+"_trials_"+str(runs)+"_runs/beta_param_test/"
+# Set titles above each plot
+panel_titles = {
+"Single_Good":"Single Reliable Expert\n($\\rho_{true}=1$)",
+"Single_Bad":"Single Unreliable Expert\n($\\rho_{true}=0$)",
+"Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
+}
 print("======Plotting graphs======")
-# TODO
+CLUE.Plot.plot_beta_heatmap(base_path,alphas,betas,panel_titles)

@@ -27,6 +27,7 @@ class BaselineAgent(Agent):
                 if None, will be based on visit count (see Sutton and Barto, 2018)
                 default: None
         '''
+        self.name = "Baseline Agent"
         # Initialise state and action space
         self.state_space = env.state_space
         self.action_space = env.action_space

@@ -381,9 +381,9 @@ def save_beta_param_test_to_csv(regrets,env_name,agents,panels,trials,runs,basel
         if agents[agent].takes_advice():
             for panel in panels:
                 if agents[agent].get_history() is not None:
-                    row = [agent,panel.name,str(agents[agent].initial_estimate[0]),str(agents[agent].initial_estimate[1])]
+                    row = [agents[agent].name,panel.name,str(agents[agent].initial_estimate[0]),str(agents[agent].initial_estimate[1])]
                 else:
-                    row = [agent,panel.name,"",""]
+                    row = [agents[agent].name,panel.name,"",""]
                 writer.writerow(row+regrets[agent][panel])
         else:
             row = [agent,"","",""]

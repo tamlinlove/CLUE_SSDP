@@ -21,5 +21,10 @@ python panel_comparison.py
 ```
 This is a significantly larger experiment (trials = 80,000, runs = 100, |S|=1024, |A|=8) and may take some time to run. These parameters may be changed by editing [panel_comparison.py](panel_comparison.py).
 
+The experiment from Section 4.3. of the paper, titled **Initial Reliability Estimates**, can be run using
+```beta_param_test
+python beta_param_test.py
+```
+
 ## Assets Used
 The implementations of graphical models, influence diagrams, factors and variable elimination in [PGM.py](CLUE/PGM.py) are adapted from code by David Poole and Alan Mackworth, available [here](https://artint.info/AIPython/), released under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en_US).

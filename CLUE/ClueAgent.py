@@ -28,6 +28,7 @@ class ClueAgent(Agent):
             threshold - threshold parameter T, used in decision making
                 default: 2/|A|
         '''
+        self.name = "CLUE"
         self.state_space = env.state_space
         self.action_space = env.action_space
         self.initial_estimate = initial_estimate

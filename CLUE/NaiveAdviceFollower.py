@@ -23,6 +23,7 @@ class NaiveAdviceFollower(Agent):
             trials - number of trials, only required if not specifying agent
                 default: None
         '''
+        self.name = "NAF"
         self.state_space = env.state_space
         if agent is None: # Default agent
             if isinstance(trials,int) and trials > 0: # Trials is valid

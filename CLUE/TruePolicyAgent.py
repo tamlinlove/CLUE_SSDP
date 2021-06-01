@@ -18,6 +18,7 @@ class TruePolicyAgent(Agent):
             env - an instance of the InfluenceDiagram class, representing the
                   SSDP environment
         '''
+        self.name = "True Policy Agent"
         self.env = env
 
         # Set up graph
