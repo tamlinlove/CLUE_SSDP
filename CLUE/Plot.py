@@ -237,6 +237,64 @@ def plot_beta_heatmap(base_path,alphas,betas,panel_titles,baseline="Baseline Age
         plot_heatmap(fig_path,agent+"_regrets",panel_titles,regret_vals[agent],"$\\alpha$",alphas,"$\\beta$",betas,rounding=rounding,vrange=vrange)
         plot_heatmap(fig_path,agent+"_regret_diffs",panel_titles,regret_diffs[agent],"$\\alpha$",alphas,"$\\beta$",betas,rounding=rounding,vrange=vrange)
 
+def plot_expert_heatmap(base_path,mus,gammas,panel_titles,baseline="Baseline Agent",rounding=1,vrange=None):
+    # Read in regrets
+    f = open("results/"+base_path+"regrets.csv","r",newline="")
+    reader = csv.reader(f, delimiter=',')
+
+    # Make sure mus and gammas are floats
+    mus = list(np.array(mus,dtype=float))
+    gammas = list(np.array(gammas,dtype=float))
+
+    regrets = {}
+    takes_advice = {}
+    baseline_regret = 0
+    baseline_regret_matrix = np.zeros((len(mus),len(gammas)))
+    for line in reader:
+        agent = line[0]
+        panel = line[1]
+        mu = line[2]
+        gamma = line[3]
+        mean_regret = np.mean(np.array(line[4:],dtype=float))
+        if agent not in regrets: # First time seeing this agent
+            if panel == "": # No panel
+                takes_advice[agent] = False
+                regrets[agent] = mean_regret
+                if agent == baseline:
+                    baseline_regret = mean_regret
+                    baseline_regret_matrix = np.ones((len(mus),len(gammas)))*baseline_regret
+            else: # Uses panel
+                takes_advice[agent] = True
+                regrets[agent] = {}
+                regrets[agent][panel] = np.zeros((len(mus),len(gammas)))
+                regrets[agent][panel][mus.index(float(mu))][gammas.index(float(gamma))] = mean_regret
+        else: # Agent already in dict
+            if panel in regrets[agent]: # Panel already seen before
+                regrets[agent][panel][mus.index(float(mu))][gammas.index(float(gamma))] = mean_regret
+            else: # Never encountered agent-panel pair
+                regrets[agent][panel] = np.zeros((len(mus),len(gammas)))
+                regrets[agent][panel][mus.index(float(mu))][gammas.index(float(gamma))] = mean_regret
+    f.close()
+
+    # Calculate differences
+    regret_vals = {}
+    regret_diffs = {}
+    for agent in regrets:
+        if takes_advice[agent]:
+            regret_vals[agent] = {}
+            regret_diffs[agent] = {}
+            for panel in regrets[agent]:
+                regret_vals[agent][panel] = regrets[agent][panel]
+                regret_diffs[agent][panel] = regrets[agent][panel] - baseline_regret_matrix
+        else:
+            print(agent+" : "+str(regrets[agent]))
+
+    # Plot
+    fig_path = "figures/"+base_path
+    for agent in regret_vals:
+        plot_heatmap(fig_path,agent+"_regrets",panel_titles,regret_vals[agent],"$\\mu$",mus,"$\\gamma$",gammas,rounding=rounding,vrange=vrange)
+        plot_heatmap(fig_path,agent+"_regret_diffs",panel_titles,regret_diffs[agent],"$\\mu$",mus,"$\\gamma$",gammas,rounding=rounding,vrange=vrange)
+
 def plot_heatmap(fig_path,filename,panel_titles,vals,x_label,x_vals,y_label,y_vals,rounding=1,rev=True,vrange=None):
     os.makedirs(os.path.dirname(fig_path), exist_ok=True)
     panels = list(panel_titles.keys())

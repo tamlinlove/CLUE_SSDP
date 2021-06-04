@@ -30,6 +30,67 @@ keeps_rho_history = {
     "True Policy Agent":False
 }
 
+def expert_param_test(env,agents,panel_dict,mus,gammas,trials,runs,display=False,display_interval=10):
+    '''
+    Run the expert parameter test
+
+    Input:
+        env - instance of InfluenceDiagram representing the environment
+        agents - dict mapping agent name to Agent object
+        panel_dict - dict mapping panel name to list of true reliabilities
+        mus - list of mu values to be tested
+        gammas - list of gamma values to be tested
+        runs - number of runs
+        trials - number of trials
+        display - boolean. Whether or not the experiment will print out updates
+        display_interval - if display = True, this determines the number of runs between printouts
+    Output:
+        regret - dict mapping agents, panels, mus and gammas to array of regret
+            regret[agent][panel][mu][gamma] = array of size runs
+    '''
+    # Initialise dict
+    regret = {}
+    for agent in agents:
+        if agents[agent].takes_advice():
+            regret[agent] = {}
+            for panel in panel_dict:
+                regret[agent][panel] = {}
+                for mu in mus:
+                    regret[agent][panel][str(mu)] = {}
+                    for gamma in gammas:
+                        regret[agent][panel][str(mu)][str(gamma)] = []
+
+        else:
+            regret[agent] = []
+
+    # Initialise oracle
+    oracle = TruePolicyAgent(env)
+
+    # Run experiments
+    for agent in agents:
+        if agents[agent].takes_advice(): # Panels matter
+            for mu in mus:
+                for gamma in gammas:
+                    panels = make_panels(panel_dict,env,mu=mu,gamma=gamma)
+                    for panel in panels:
+                        if display:
+                            print("==="+agent+" : "+panel.name+" : mu = "+str(mu)+",gamma = "+str(gamma)+"===")
+                        for r in range(runs):
+                            if display and r % display_interval == 0:
+                                print("Run "+str(r))
+                            this_regret = run_panel_regret(env,agents[agent],panel,trials,oracle)
+                            regret[agent][panel.name][str(mu)][str(gamma)].append(this_regret)
+        else: # Panels don't matter
+            if display:
+                print("==="+agent+"===")
+            for r in range(runs):
+                if display and r % display_interval == 0:
+                    print("Run "+str(r))
+                this_regret = run_standard_regret(env,agents[agent],trials,oracle)
+                regret[agent].append(this_regret)
+    return regret
+
+
 def make_agents(agent_list,env,trials,**kwargs):
     '''
     Take in a list of agent names and return a dict of agents
@@ -385,6 +446,25 @@ def save_beta_param_test_to_csv(regrets,env_name,agents,panels,trials,runs,basel
                 else:
                     row = [agents[agent].name,panel.name,"",""]
                 writer.writerow(row+regrets[agent][panel])
+        else:
+            row = [agent,"","",""]
+            writer.writerow(row+regrets[agent])
+    f.close()
+
+def save_expert_param_test_to_csv(regrets,env_name,agents,panel_dict,trials,runs,baseline="Baseline Agent",directory="expert_param_test"):
+    base_dir = "results/"+env_name+"/"+directory+"/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+    file_dir = base_dir+"expert_param_test/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    f = open(file_dir+"regrets.csv","w",newline="")
+    writer = csv.writer(f)
+    # Save regrets
+    for agent in agents:
+        if agents[agent].takes_advice():
+            for panel in panel_dict:
+                for mu in regrets[agent][panel]:
+                    for gamma in regrets[agent][panel][mu]:
+                        row = [agents[agent].name,panel,mu,gamma]
+                        writer.writerow(row+regrets[agent][panel][mu][gamma])
         else:
             row = [agent,"","",""]
             writer.writerow(row+regrets[agent])

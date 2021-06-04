@@ -25,6 +25,10 @@ The experiment from Section 4.3. of the paper, titled **Initial Reliability Esti
 ```beta_param_test
 python beta_param_test.py
 ```
+The experiment from Section 4.4. of the paper, titled **Expert Parameters**, can be run using
+```expert_param_test
+python expert_param_test.py
+```
 
 ## Assets Used
 The implementations of graphical models, influence diagrams, factors and variable elimination in [PGM.py](CLUE/PGM.py) are adapted from code by David Poole and Alan Mackworth, available [here](https://artint.info/AIPython/), released under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en_US).
