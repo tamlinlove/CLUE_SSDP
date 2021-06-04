@@ -17,7 +17,7 @@ env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3)
 EXPERIMENT DETAILS
 '''
 trials = 10000 # Number of trials each run
-runs = 10 # Number of runs, each run the agent learns from scratch
+runs = 100 # Number of runs, each run the agent learns from scratch
 alphas = [1,10,100,1000] # Values of alpha to be tested
 betas = [1,10,100,1000] # Values of beta to be tested
 

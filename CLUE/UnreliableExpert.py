@@ -90,12 +90,12 @@ class UnreliableExpert(Expert):
 
         # Condition 1: Time between trials must exceed mu
         time_difference = self.curr_trial - self.last_advice
-        if time_difference <= self.mu:
+        if time_difference < self.mu:
             return False,None
 
         # Condition 2: Large enough improvement is guaranteed
         utility_difference = self.optimal_utility_sum - self.agent_utility_sum
-        if utility_difference/time_difference <= self.gamma:
+        if utility_difference/time_difference < self.gamma:
             return False,None
 
         # All conditions passed, giving advice

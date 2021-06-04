@@ -119,6 +119,55 @@ def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None
 
     return reward_means,reward_low,reward_high,takes_advice,agents,panels
 
+def read_rhos(rho_path,trials,accepted_panels=None):
+
+    rhos = {}
+    rho_low = {}
+    rho_high = {}
+    agents = []
+    panels = []
+    rels = {}
+
+    files = os.listdir(rho_path)
+    # Read and smooth
+    for filename in files:
+        f = open(rho_path+filename,"r",newline="")
+        reader = csv.reader(f, delimiter=',')
+        header = next(reader)
+        agent = header[0]
+        panel = header[1]
+        rel = header[2]
+        if accepted_panels is None or panel in accepted_panels or panel == "":
+            rho_list = []
+            for row in reader:
+                rho_list.append(row)
+            f.close()
+            rho = np.array(rho_list).astype(float)
+            y_mean = np.mean(rho,axis=0)
+            y_std = np.std(rho,axis=0)
+            y,low,high = smooth(y_mean,y_std,trials)
+            if panel not in panels:
+                panels.append(panel)
+                rels[panel] = []
+            if agent not in agents:
+                rhos[agent] = {}
+                rho_low[agent] = {}
+                rho_high[agent] = {}
+                agents.append(agent)
+            if rel not in rels[panel]:
+                rels[panel].append(rel)
+            if panel not in rhos[agent]:
+                rhos[agent][panel] = {}
+                rho_low[agent][panel] = {}
+                rho_high[agent][panel] = {}
+            rhos[agent][panel][str(rel)] = np.array(y,dtype=float)
+            rho_low[agent][panel][str(rel)] = np.array(low,dtype=float)
+            rho_high[agent][panel][str(rel)] = np.array(high,dtype=float)
+        else:
+            f.close()
+
+    return rhos,rho_low,rho_high,agents,panels,rels
+
 def plot_beta_heatmap(base_path,alphas,betas,panel_titles,baseline="Baseline Agent",rounding=1,vrange=None):
     # Read in regrets
     f = open("results/"+base_path+"regrets.csv","r",newline="")
@@ -298,3 +347,70 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
              bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=len(agents))
     plt.savefig(file_dir+"reward_comparison.png",dpi=256)
     plt.close()
+
+def plot_rhos(base_path,trials,accepted_panels=None,panel_titles=None):
+    path = "results/"+base_path
+    fig_path = "figures/"+base_path
+    rho_path = path+"rhos/"
+
+    rhos,rho_low,rho_high,agents,panels,rels = read_rhos(rho_path,trials,accepted_panels)
+
+    if accepted_panels is None:
+        accepted_panels = panels
+
+    num_experts = []
+    all_rels = []
+    for panel in rels:
+        num_experts.append(len(rels[panel]))
+        for rel in rels[panel]:
+            if float(rel) not in all_rels:
+                all_rels.append(float(rel))
+    max_num_rel = np.max(num_experts)
+    all_rels.sort()
+    all_rels_str = list(map(str,all_rels))
+
+    # Correct agent names
+    agent_names = {}
+    agent_labels = []
+    for agent in agents:
+        agent_names[agent] = agent.replace("_"," ")
+        agent_labels.append(agent_names[agent])
+
+    # Plot
+    x = np.arange(trials)
+    file_dir = fig_path+"rho_comparison/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+
+    c_map = plt.cm.get_cmap("tab20", len(all_rels))
+    colours = {}
+    for rel in all_rels_str:
+        colours[rel] = c_map(all_rels_str.index(rel))
+
+    for agent in agents:
+        fig, ax = plt.subplots(ncols=len(panels),figsize=(4*len(panels),4.8))
+        plot_dict = {}
+        for i in range(len(panels)):
+            panel = panels[i]
+            for rel in rels[panel]:
+                rel_str = str(float(rel))
+                #print(agent+" : "+panel+" : "+rel_str+" : converged to "+str(rhos[agent][panel][rel][-1]))
+                ax[i].fill_between(x,rho_low[agent][panel][rel], rho_high[agent][panel][rel], alpha=0.2,color=colours[rel_str])
+                l, = ax[i].plot(rhos[agent][panel][rel],label=rel_str,color=colours[rel_str])
+                if rel_str not in plot_dict:
+                    plot_dict[rel_str] = l
+                ax[i].set_xlabel("Trials")
+                ax[i].set_ylabel("Average Rho")
+                if panel_titles is not None:
+                    ax[i].set_title(panel_titles[panel])
+                else:
+                    ax[i].set_title(panel)
+        plot_list = []
+        for rel in all_rels_str:
+            plot_list.append(plot_dict[rel])
+        bottom = 0.5
+        wspace = 0.45
+        fig.subplots_adjust(bottom=bottom, wspace=wspace)
+        plt.legend(handles = plot_list , labels=all_rels_str,loc='upper center',
+                 bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=max_num_rel)
+        plt.savefig(file_dir+agent+".png",dpi=256)
+        plt.close()

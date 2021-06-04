@@ -67,3 +67,5 @@ panel_titles = {
 reward_range = [-1,1]
 # Plot graphs
 CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles)
+# Plot Rhos
+CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
