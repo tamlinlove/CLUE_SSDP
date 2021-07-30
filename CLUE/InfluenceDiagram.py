@@ -3,6 +3,8 @@ Parent class for any SSDP influence diagram environment
 '''
 
 import numpy as np
+import PGM
+import StateTable
 
 class InfluenceDiagram():
     '''
@@ -94,6 +96,52 @@ class InfluenceDiagram():
             text += "===" + node + "===\n"
             text += str(self.factors[node])
         print(text)
+
+    def prune_state_nodes(self,state_nodes):
+        '''
+        Removes state nodes from the ID and adjusts CPDs accordingly
+
+        Input:
+            state_nodes - list of chance node names
+        Output:
+            policy - StateTable object whose domain is the state space (without state_nodes)
+                and each state assignment maps to an action assignment
+        '''
+        # Get list of all factors
+        fac_list = list(self.factors.values())
+
+        # Eliminate all nodes in stet_nodes
+        ve_engine = PGM.VE(self.gm)
+        new_facs = fac_list
+        new_state_space = self.state_space.copy()
+        for node in state_nodes:
+            new_facs = ve_engine.eliminate_var(new_facs,self.variables[node])
+            new_state_space.pop(node,None)
+        reward_fac = new_facs[-1] # Final factor is the factor associated with reward
+
+        # Create policy object
+        policy = StateTable.StateTable(new_state_space)
+        action_assignments = StateTable.StateTable(self.action_space)
+
+        # For every state, which action maximises reward?
+        for state_index in range(policy.size):
+            node_assignment = policy.index_to_assignment(state_index)
+            var_assignment = {}
+            for node in node_assignment:
+                var_assignment[self.variables[node]] = node_assignment[node]
+            best_action = None
+            best_reward = None
+            for action_index in range(action_assignments.size):
+                action_assignment = action_assignments.index_to_assignment(action_index)
+                for action_node in self.decision:
+                    var_assignment[self.variables[action_node]] = action_assignment[action_node]
+
+                reward = reward_fac.get_value(var_assignment)
+                if best_reward is None or best_reward < reward:
+                    best_action = action_assignment
+                    best_reward = reward
+            policy.add_to_table(node_assignment,best_action)
+        return policy
 
     def reset(self):
         '''
