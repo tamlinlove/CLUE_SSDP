@@ -20,6 +20,7 @@ from ClueAgent import ClueAgent
 # Experts
 from Expert import Expert
 from UnreliableExpert import UnreliableExpert
+from PartiallyReliableExpert import PartiallyReliableExpert
 from Panel import Panel
 
 # Helpers

@@ -106,6 +106,7 @@ class InfluenceDiagram():
         Output:
             policy - StateTable object whose domain is the state space (without state_nodes)
                 and each state assignment maps to an action assignment
+            utility - StateTable object mapping state-action assignments to expected utilities
         '''
         # Get list of all factors
         fac_list = list(self.factors.values())
@@ -119,29 +120,38 @@ class InfluenceDiagram():
             new_state_space.pop(node,None)
         reward_fac = new_facs[-1] # Final factor is the factor associated with reward
 
+        # State-Action Space
+        state_action_space = new_state_space.copy()
+        for node in self.action_space:
+            state_action_space[node] = self.action_space[node]
+
         # Create policy object
         policy = StateTable.StateTable(new_state_space)
+        utility = StateTable.StateTable(state_action_space)
         action_assignments = StateTable.StateTable(self.action_space)
 
         # For every state, which action maximises reward?
         for state_index in range(policy.size):
-            node_assignment = policy.index_to_assignment(state_index)
+            assignment = policy.index_to_assignment(state_index)
+            node_assignment = assignment.copy()
             var_assignment = {}
-            for node in node_assignment:
-                var_assignment[self.variables[node]] = node_assignment[node]
+            for node in assignment:
+                var_assignment[self.variables[node]] = assignment[node]
             best_action = None
             best_reward = None
             for action_index in range(action_assignments.size):
                 action_assignment = action_assignments.index_to_assignment(action_index)
                 for action_node in self.decision:
+                    node_assignment[action_node] = action_assignment[action_node]
                     var_assignment[self.variables[action_node]] = action_assignment[action_node]
 
                 reward = reward_fac.get_value(var_assignment)
+                utility.values[utility.assignment_to_index(node_assignment)] = reward
                 if best_reward is None or best_reward < reward:
                     best_action = action_assignment
                     best_reward = reward
-            policy.add_to_table(node_assignment,best_action)
-        return policy
+            policy.add_to_table(assignment,best_action)
+        return policy,utility
 
     def reset(self):
         '''
