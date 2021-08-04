@@ -1,7 +1,5 @@
 import CLUE
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 '''
 This script runs the panel comparison experiment with
