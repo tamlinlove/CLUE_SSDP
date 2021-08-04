@@ -4,7 +4,7 @@ class Panel:
     '''
     Class for a panel of potentially unreliable experts
     '''
-    def __init__(self,env,name,oracle,rhos,mu=10,gamma=0.01):
+    def __init__(self,env,name,oracle,rhos,mu=10,gamma=0.01,experts=None):
         '''
         Initialise panel of experts
 
@@ -12,19 +12,26 @@ class Panel:
             env - instance of InfluenceDiagram representing environment
             name - a string. The name of the panel
             oracle - instance of TruePolicyAgent. Used to select correct advice
+                Ignored if expert parameter is used
             rhos - list of numbers between 0 and 1 inclusive. Each represents an expert
+                Ignored if experts parameter is used
             mu - interval parameter (number of trials between advice givings)
                 default: 10
             gamma - tolerance parameter (regret over past trials since advice must be greater than gamma)
                 default: 0.01
+            experts - dict of experts in the panel. If None, will create Unreliable Experts using rho list
 
         Todo:
             allow for each expert in a panel to have different parameters
         '''
         self.name = name
-        self.experts = {}
-        for rho in rhos:
-            self.experts[str(rho)] = UnreliableExpert(env,oracle,rho,mu=mu,gamma=gamma)
+
+        if experts is None:
+            self.experts = {}
+            for rho in rhos:
+                self.experts[str(rho)] = UnreliableExpert(env,oracle,rho,mu=mu,gamma=gamma)
+        else:
+            self.experts = experts
 
     def advise(self,state,action,reward):
         '''

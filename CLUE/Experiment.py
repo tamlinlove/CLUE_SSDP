@@ -13,6 +13,7 @@ from ClueAgent import ClueAgent
 from RandomSSDP import RandomSSDP
 
 from Panel import Panel
+from PartiallyReliableExpert import PartiallyReliableExpert
 
 # Dict mapping agent name to whether or not they take panel advice
 takes_advice = {
@@ -221,6 +222,60 @@ def panel_comparison(env,agents,panels,trials,runs,display=False,display_interva
             for r in range(runs):
                 if display and r % display_interval == 0:
                     print("Run "+str(r))
+                rewards[agent][r,:] = run_standard(env,agents[agent],trials)
+    return rewards,rhos
+
+def panel_comparison_partially_reliable_experts(env,agent_list,panel_dict,trials,runs,display=False,display_interval=10):
+    '''
+    Run an experiment comparing rewards obtained over trials by each agent-panel configuration
+    Each run uses a different configuration of hidden nodes for each expert
+
+    Input:
+        TODO
+    Output:
+        TODO
+    '''
+    # Initialise empty dicts for rewards and rho
+    rewards = {}
+    rhos = {}
+
+    for agent in agent_list:
+        if takes_advice[agent]: # Panel has an effect
+            rewards[agent] = {}
+            if keeps_rho_history[agent]: # Agent keeps track of rhos
+                rhos[agent] = {}
+            for panel in panel_dict:
+                rewards[agent][panel] = np.zeros((runs,trials))
+                if keeps_rho_history[agent]:
+                    rhos[agent][panel] = {}
+                    for expert in panel_dict[panel]:
+                        rhos[agent][panel][str(expert)] = np.zeros((runs,trials))
+        else:
+            rewards[agent] = np.zeros((runs,trials))
+    # Initialise agents
+    agents = make_agents(agent_list,env,trials)
+    # Run experiment
+    for r in range(runs):
+        if display and r % display_interval == 0:
+            print("Run "+str(r))
+        # Initialise panels
+        panels = []
+        for panel in panel_dict:
+            experts = {}
+            for num in panel_dict[panel]:
+                hidden_nodes = np.random.choice(env.chance,num,replace=False)
+                experts[str(num)] = PartiallyReliableExpert(env,hidden_nodes)
+            panels.append(Panel(env,panel,None,None,experts=experts))
+        # Run
+        for agent in agents:
+            if agents[agent].takes_advice(): # Panels have an effect
+                for panel in panels:
+                    rewards[agent][panel.name][r,:] = run_panel(env,agents[agent],panel,trials)
+                    history = agents[agent].get_history()
+                    if history is not None:
+                        for expert in panel.experts:
+                            rhos[agent][panel.name][expert][r,:] = history["rho"][expert]
+            else: # Panels don't matter
                 rewards[agent][r,:] = run_standard(env,agents[agent],trials)
     return rewards,rhos
 

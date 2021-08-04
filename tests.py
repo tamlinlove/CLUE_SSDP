@@ -1,39 +1,59 @@
 import CLUE
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
+'''
+This script runs the panel comparison experiment with
+partially reliable experts
+'''
+
+'''
+EXPERIMENT DETAILS
+'''
+# Number of trials
+trials = 10000
+# Number of runs
+runs = 100
+# List of agents
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
+# Expert nums
+expert_nums = [0,1,2,3,4,5,6,7]
+# Number of variables in env
+num_chance = 7 # Number of state variables (|S|=2^num_chance)
+num_decision = 3 # Number of action variables (|A|=2^num_decision)
+# Name of experiment, for saving and plotting
+exp_name = "partially_reliable_experts"
+# Environment
 env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3)
-oracle = CLUE.TruePolicyAgent(env)
+# Panels of single experts
+panel_dict = {}
+for num in expert_nums:
+    panel_dict[str(num)] = [num]
 
-#hidden_nodes = []
-#hidden_nodes = ["C0"]
-#hidden_nodes = ["C1"]
-hidden_nodes = ["C0","C2"]
-#hidden_nodes = env.chance
-expert = CLUE.PartiallyReliableExpert(env,hidden_nodes)
+'''
+RUN EXPERIMENT
+'''
+print("======Running experiment======")
+rewards,rhos = CLUE.Experiment.panel_comparison_partially_reliable_experts(env,agent_list,panel_dict,trials,runs,display=True)
 
-num_trials = 1000
-num_runs = 100
-optimality = []
+print("======Saving results======")
+CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,7,3,agent_list,panel_dict,trials,runs,directory=exp_name)
 
-for n in range(8):
-    print("Testing partially reliable expert with "+str(n)+" hidden nodes")
-    tot_num = 0
-    for i in range(num_runs):
-        hidden_nodes = np.random.choice(env.chance,n,replace=False)
-        expert = CLUE.PartiallyReliableExpert(env,hidden_nodes)
-        num_correct = 0
-        for j in range(num_trials):
-            state = env.reset()
-            optimal = oracle.act(state)
-            advised = expert.advise(state)
-            if optimal == advised:
-                num_correct += 1
-        tot_num += num_correct/num_trials
-    optimality.append(tot_num/num_runs)
-
-plt.plot(range(8),optimality)
-plt.title("Testing a partially reliable expert\n Averaged over 100 node configurations with 1000 trials each")
-plt.ylabel("Percentage of states for which advice is optimal")
-plt.xlabel("Number of state nodes hidden from expert")
-plt.show()
+'''
+PLOT RESULTS
+'''
+print("======Plotting graphs======")
+# Set path in figures/ directory
+base_path = env.name+"/partially_reliable_experts/"+str(trials)+"_trials_"+str(runs)+"_runs/"
+# Set titles above each plot
+panel_titles = {}
+for num in expert_nums:
+    panel_titles[str(num)] = str(num)
+# Set clip range for shaded area
+reward_range = [-1,1]
+# Plot graphs
+CLUE.Plot.plot_reward_comparison_individual(base_path,trials,panel_titles=panel_titles)
+# Plot Rhos
+# TODO: Write new rho plot for partially reliable experts
+#CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)

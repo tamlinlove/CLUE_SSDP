@@ -340,6 +340,49 @@ def plot_heatmap(fig_path,filename,panel_titles,vals,x_label,x_vals,y_label,y_va
     plt.savefig(fig_path+filename)
     plt.close()
 
+def plot_reward_comparison_individual(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None]):
+    '''
+    TODO
+    '''
+    path = "results/"+base_path
+    fig_path = "figures/"+base_path
+    reward_path = path+"rewards/"
+
+    reward_means,reward_low,reward_high,takes_advice,agents,panels = read_rewards(reward_path,trials,accepted_panels,reward_range=reward_range)
+
+    if accepted_panels is None:
+        accepted_panels = panels
+
+    # Correct agent names
+    agent_names = {}
+    agent_labels = []
+    for agent in agents:
+        agent_names[agent] = agent.replace("_"," ")
+        agent_labels.append(agent_names[agent])
+
+    # Plot
+    x = np.arange(trials)
+    file_dir = fig_path+"agent_comparison/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for i in range(len(panels)):
+        panel = accepted_panels[i]
+        for agent in agents:
+            agent_name = agent_names[agent]
+            if takes_advice[agent]:
+                plt.fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
+                plt.plot(x,reward_means[agent][panel],label=agent_name)
+            else:
+                plt.fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
+                plt.plot(x,reward_means[agent],label=agent_name)
+            plt.xlabel("Trials")
+            plt.ylabel("Average Reward")
+        if panel_titles is not None:
+            plt.title(panel_titles[panel])
+        else:
+            plt.title(panel)
+        plt.legend()
+        plt.savefig(file_dir+panel+"_reward_comparison.png",dpi=256)
+        plt.close()
 
 def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None]):
     '''
