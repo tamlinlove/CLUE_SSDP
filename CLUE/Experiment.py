@@ -9,6 +9,7 @@ from TruePolicyAgent import TruePolicyAgent
 from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
+from ClueAgentDecayed import ClueAgentDecayed
 
 from RandomSSDP import RandomSSDP
 
@@ -100,6 +101,7 @@ def make_agents(agent_list,env,trials,**kwargs):
         agent_list - list of agents, each item must be one of the following
             "Baseline Agent" - baseline agent
             "CLUE" - CLUE agent
+            "CLUE Decayed" - CLUE agent with decaying reliance
             "NAF" - NAF agent
             "True Policy Agent" - true policy agent
         env - instance of InfluenceDiagram class representing environment
@@ -114,6 +116,8 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
             agents[agent] = ClueAgent(env,trials=trials,**kwargs)
+        elif agent == "CLUE Decayed":
+            agents[agent] = ClueAgentDecayed(env,trials,**kwargs)
         elif agent == "NAF":
             agents[agent] = NaiveAdviceFollower(env,trials=trials,**kwargs)
         elif agent == "True Policy Agent":

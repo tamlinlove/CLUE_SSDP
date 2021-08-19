@@ -5,35 +5,38 @@ from StateTable import StateTable
 import numpy as np
 from itertools import product
 
-class ClueAgent(Agent):
+class ClueAgentDecayed(Agent):
     '''
     Class for a CLUE (Cautiously Learning with Unreliable Experts) agent
-    Takes advice, estimates reliability of experts and combines advice in Bayesian way
+    Takes advice and combines advice in Bayesian way
+    Reliability for all starts at 1 and decays to 0
     '''
-    def __init__(self,env,agent=None,trials=None,initial_estimate=[1,1],threshold=None):
+    def __init__(self,env,trials,agent=None,initial_reliance=1,reliance_fraction=0.8,threshold=None):
         '''
         Initialise CLUE Agent
 
         Input:
             env - instance of InfluenceDiagram class representing environment
+            trials - number of trials, required for decaying to work
             agent - instance of the Agent class or None
                 if Agent, CLUE wraps around that agent and uses it for decision making and learning
                 if None, will create BaselineAgent with default parameters
                 default: None
-            trials - number of trials, only required if not specifying agent
-                default: None
-            initial_estimate - list of two parameters, alpha and beta, for initial beta distribution for each expert
-                default: [1,1] (uniform prior)
-                TODO: allow for each expert to have a separate initial_beta
+
+            initial_reliance - initial reliance on advice between 0 and 1 (none and all)
+            reliance_fraction - fraction of trials over which the reliance decays
             threshold - threshold parameter T, used in decision making
-                default: 2/|A|
+                default: min(2/|A|,0.5)
         '''
-        self.name = "CLUE"
+        self.name = "CLUE with Decayed Reliance"
         self.state_space = env.state_space
         self.action_space = env.action_space
-        self.initial_estimate = initial_estimate
+        self.initial_reliance = initial_reliance
+        self.reliance_fraction = reliance_fraction
+        self.trials = trials
+
         if threshold is None:
-            self.threshold = min(2/env.size_A,0.5) # Ensures that auto threshold is always below 1 for when |A| is small
+            self.threshold = min(2/env.size_A,0.5)
         else:
             self.threshold = threshold
 
@@ -67,13 +70,13 @@ class ClueAgent(Agent):
         advice_given = bool(advice_dict)
         # Calculate trust in each expert
         if advice_given:
+            # Recalculate rho
+            fraction = min(1.0, self.trial_count / self.reliance_steps)
+            self.reliance = self.initial_reliance + fraction * (0 - self.initial_reliance)
+
             for expert in self.state_table_dict:
-                alpha = self.beta_parameters[expert][0]
-                beta = self.beta_parameters[expert][1]
-                rho = alpha/(alpha+beta)
-                rho = max(rho,0) # Just in case
-                self.rho[expert] = rho
-                self.history["rho"][expert].append(rho) # Add new rho to rho history
+                self.rho[expert] = self.reliance
+                self.history["rho"][expert].append(self.reliance) # Add new rho to rho history
 
             # Calculate best advised action
             combinations = list(product(*self.action_space.values()))
@@ -158,6 +161,7 @@ class ClueAgent(Agent):
             advice - a dict mapping expert name to advice, where advice is an action dict
 
         '''
+        self.trial_count += 1
         # Learn
         self.agent.learn(state,actions,reward)
         # Add advice to state table
@@ -165,22 +169,6 @@ class ClueAgent(Agent):
             if advice[expert] is not None: # Advice was given this trial
                 # Add advice to table
                 self.state_table_dict[expert].add_to_table(state,advice[expert])
-                # Evaluate advice
-                state_values,indices = self.agent.score_state(state)
-                best_val = max(state_values)
-                worst_val = min(state_values)
-                advice_state = {}
-                for node in self.state_space:
-                    advice_state[node] = state[node]
-                for node in actions:
-                    advice_state[node] = advice[expert][node]
-                advice_val = self.agent.utility.get_value(advice_state)
-                if advice_val >= best_val:
-                    self.optimal_dict[expert] += 1 # Expert's advice is best
-                else:
-                    self.suboptimal_dict[expert] += 1 # Expert's advice is not optimal
-                # Update parameters
-                self.beta_parameters[expert] = (self.optimal_dict[expert],self.suboptimal_dict[expert])
 
 
     def reset(self,panel):
@@ -193,17 +181,14 @@ class ClueAgent(Agent):
         self.agent.reset() # Reset agent
         self.history = {"rho":{}} # Reset history
         self.state_table_dict = {} # Reset advice table
-        self.beta_parameters = {} # Reset reliability estimates
-        self.optimal_dict = {}
-        self.suboptimal_dict = {}
         self.rho = {}
+        self.trial_count = 0
+        self.reliance = self.initial_reliance # Reset epsilon
+        self.reliance_steps = self.reliance_fraction * float(self.trials) # Reset epsilon decay
         for expert in panel.experts:
             self.state_table_dict[expert] = StateTable(self.state_space)
-            self.beta_parameters[expert] = (self.initial_estimate[0],self.initial_estimate[1])
-            self.optimal_dict[expert] = self.initial_estimate[0]
-            self.suboptimal_dict[expert] = self.initial_estimate[1]
             self.history["rho"][expert] = []
-            self.rho[expert] = self.initial_estimate[0]/(self.initial_estimate[0]+self.initial_estimate[1])
+            self.rho[expert] = self.initial_reliance
 
     def takes_advice(self):
         '''

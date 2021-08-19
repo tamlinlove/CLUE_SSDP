@@ -12,7 +12,7 @@ class RandomSSDP(InfluenceDiagram):
     '''
     The class for a random SSDP influence diagram
     '''
-    def build_network(self,num_chance=7,num_decision=3,seed=1):
+    def build_network(self,num_chance=7,num_decision=3,seed=1,reward_range=[-1,1]):
         '''
         Builds a random SSDP influence diagram
         This is called by the initialisation of the InfluenceDiagram class
@@ -24,6 +24,8 @@ class RandomSSDP(InfluenceDiagram):
             num_chance - the number of boolean chance variables
             num_decision - the number of boolean decision variables
             seed - the random seed used to generate the environment
+            reward_range - a list [min,max], where min is the minimum possible reward, and max is the maximum
+                default - [-1,1]
         '''
         # Name environment
         self.name = "Random ("+str(num_chance)+","+str(num_decision)+")"
@@ -106,7 +108,7 @@ class RandomSSDP(InfluenceDiagram):
         reward_parents = list(np.random.choice(list(self.state_space.keys()),num_pars,replace=False))+list(self.action_space.keys())
         self.parents["reward"] = reward_parents
         reward_parent_vars = [self.variables[par] for par in reward_parents]
-        utility = np.random.uniform(-1,1,size=2**len(reward_parents))
+        utility = np.random.uniform(reward_range[0],reward_range[1],size=2**len(reward_parents))
         self.factors["reward"] = PGM.Utility(reward_parent_vars,utility) # Create utility
 
         self.dn = PGM.DecisionNetwork(chance_vars+action_vars,factor_list+[self.factors["reward"]]) # Create ID

@@ -515,3 +515,57 @@ def plot_rhos(base_path,trials,accepted_panels=None,panel_titles=None):
                  bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=max_num_rel)
         plt.savefig(file_dir+agent+".png",dpi=256)
         plt.close()
+
+def plot_rhos_individual(base_path,trials,accepted_panels=None,panel_titles=None):
+    path = "results/"+base_path
+    fig_path = "figures/"+base_path
+    rho_path = path+"rhos/"
+
+    rhos,rho_low,rho_high,agents,panels,rels = read_rhos(rho_path,trials,accepted_panels)
+
+    if accepted_panels is None:
+        accepted_panels = panels
+
+    num_experts = []
+    all_rels = []
+    for panel in rels:
+        num_experts.append(len(rels[panel]))
+        for rel in rels[panel]:
+            if float(rel) not in all_rels:
+                all_rels.append(float(rel))
+    max_num_rel = np.max(num_experts)
+    all_rels.sort()
+    all_rels_str = list(map(str,all_rels))
+
+    # Correct agent names
+    agent_names = {}
+    agent_labels = []
+    for agent in agents:
+        agent_names[agent] = agent.replace("_"," ")
+        agent_labels.append(agent_names[agent])
+
+    # Plot
+    x = np.arange(trials)
+    file_dir = fig_path+"rho_comparison/"
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+
+    c_map = plt.cm.get_cmap("tab20", len(all_rels))
+    colours = {}
+    for rel in all_rels_str:
+        colours[rel] = c_map(all_rels_str.index(rel))
+
+    for agent in agents:
+        for panel in panels:
+            for rel in rels[panel]:
+                rel_str = str(float(rel))
+                plt.fill_between(x,rho_low[agent][panel][rel], rho_high[agent][panel][rel], alpha=0.2,color=colours[rel_str])
+                plt.plot(rhos[agent][panel][rel],label=rel_str,color=colours[rel_str])
+                plt.xlabel("Trials")
+                plt.ylabel("Average Rho")
+                if panel_titles is not None:
+                    plt.title(panel_titles[panel])
+                else:
+                    plt.title(panel)
+            plt.legend()
+            plt.savefig(file_dir+agent+"_"+panel+".png",dpi=256)
+            plt.close()
