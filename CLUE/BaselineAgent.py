@@ -8,7 +8,7 @@ class BaselineAgent(Agent):
     '''
     Class for an action-value epsilon-greedy SSDP agent
     '''
-    def __init__(self,env,trials,eps_start=1,eps_end=0,eps_fraction=0.8,Q0=0,alpha=None):
+    def __init__(self,env,trials,eps_start=1,eps_end=0,eps_fraction=0.8,Q0=0,alpha=None,**kwargs):
         '''
         Initialise action-value epsilon-greedy SSDP agent
 

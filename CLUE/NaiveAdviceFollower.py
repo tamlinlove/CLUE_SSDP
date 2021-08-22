@@ -10,7 +10,7 @@ class NaiveAdviceFollower(Agent):
     If it gets more than one piece of advice for a state, will randomly choose
     Otherwise, acts like the agent it wraps around
     '''
-    def __init__(self,env,agent=None,trials=None):
+    def __init__(self,env,agent=None,trials=None,**kwargs):
         '''
         Initialise NAF agent
 

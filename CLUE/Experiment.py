@@ -103,6 +103,7 @@ def make_agents(agent_list,env,trials,**kwargs):
             "CLUE" - CLUE agent
             "CLUE Decayed" - CLUE agent with decaying reliance
             "NAF" - NAF agent
+            "Naive CLUE" - CLUE with no_bayes set to True
             "True Policy Agent" - true policy agent
         env - instance of InfluenceDiagram class representing environment
         trials - number of trials
@@ -120,6 +121,8 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = ClueAgentDecayed(env,trials,**kwargs)
         elif agent == "NAF":
             agents[agent] = NaiveAdviceFollower(env,trials=trials,**kwargs)
+        elif agent == "Naive CLUE":
+            agents[agent] = ClueAgent(env,trials=trials,no_bayes=True,**kwargs)
         elif agent == "True Policy Agent":
             agents[agent] = TruePolicyAgent(env,**kwargs)
     return agents

@@ -11,7 +11,7 @@ class ClueAgentDecayed(Agent):
     Takes advice and combines advice in Bayesian way
     Reliability for all starts at 1 and decays to 0
     '''
-    def __init__(self,env,trials,agent=None,initial_reliance=1,reliance_fraction=0.8,threshold=None):
+    def __init__(self,env,trials,agent=None,initial_reliance=1,reliance_fraction=0.8,threshold=None,**kwargs):
         '''
         Initialise CLUE Agent
 

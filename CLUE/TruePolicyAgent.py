@@ -10,7 +10,7 @@ class TruePolicyAgent(Agent):
     i.e. an agent that always acts optimally
     '''
 
-    def __init__(self,env):
+    def __init__(self,env,**kwargs):
         '''
         Initialise True Policy Agent
 
