@@ -9,7 +9,7 @@ from TruePolicyAgent import TruePolicyAgent
 from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
-from ClueAgentDecayed import ClueAgentDecayed
+from DecayedRelianceAgent import DecayedRelianceAgent
 
 from RandomSSDP import RandomSSDP
 
@@ -101,7 +101,7 @@ def make_agents(agent_list,env,trials,**kwargs):
         agent_list - list of agents, each item must be one of the following
             "Baseline Agent" - baseline agent
             "CLUE" - CLUE agent
-            "CLUE Decayed" - CLUE agent with decaying reliance
+            "Decayed Reliance" - Agent with decayed reliance on advice
             "NAF" - NAF agent
             "Naive CLUE" - CLUE with no_bayes set to True
             "True Policy Agent" - true policy agent
@@ -117,8 +117,8 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
             agents[agent] = ClueAgent(env,trials=trials,**kwargs)
-        elif agent == "CLUE Decayed":
-            agents[agent] = ClueAgentDecayed(env,trials,**kwargs)
+        elif agent == "Decayed Reliance":
+            agents[agent] = DecayedRelianceAgent(env,trials,**kwargs)
         elif agent == "NAF":
             agents[agent] = NaiveAdviceFollower(env,trials=trials,**kwargs)
         elif agent == "Naive CLUE":

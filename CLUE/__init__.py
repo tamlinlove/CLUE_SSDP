@@ -16,7 +16,7 @@ from TruePolicyAgent import TruePolicyAgent
 from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
-from ClueAgentDecayed import ClueAgentDecayed
+from DecayedRelianceAgent import DecayedRelianceAgent
 
 # Experts
 from Expert import Expert

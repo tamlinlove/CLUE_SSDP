@@ -8,7 +8,7 @@ variables and 3 action variables. Panels compared are the single reliable expert
 single unreliable expert, and varied panel (as in the paper). Results are
 averaged over 10 runs, each with 10000 trials, and plotted
 '''
-experiment_name = "naive_clue"
+experiment_name = "decay_reliance"
 '''
 ENVIRONMENT
 '''
@@ -22,14 +22,14 @@ env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3,reward_range=reward_ran
 EXPERIMENT DETAILS
 '''
 #trials = 10000 # Number of trials each run
-trials = 10000
+trials = 100
 runs = 10 # Number of runs, each run the agent learns from scratch
 
 '''
 AGENTS
 '''
 # Create some agents, store in dictionary
-agent_list = ["True Policy Agent","Baseline Agent","CLUE","Naive CLUE"]
+agent_list = ["True Policy Agent","Baseline Agent","CLUE","NAF","Decayed Reliance"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials,threshold=0.25)
 
 '''
