@@ -20,7 +20,9 @@ from PartiallyReliableExpert import PartiallyReliableExpert
 takes_advice = {
     "Baseline Agent":False,
     "CLUE":True,
+    "Decayed Reliance":True,
     "NAF":True,
+    "Naive CLUE":True,
     "True Policy Agent":False
 }
 
@@ -28,7 +30,9 @@ takes_advice = {
 keeps_rho_history = {
     "Baseline Agent":False,
     "CLUE":True,
+    "Decayed Reliance":False,
     "NAF":False,
+    "Naive CLUE":True,
     "True Policy Agent":False
 }
 
