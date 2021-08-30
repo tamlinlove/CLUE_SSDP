@@ -20,6 +20,7 @@ class ClueAgent(Agent):
         threshold=None,
         no_bayes=False,
         regular_update=False,
+        sliding_window=None,
         **kwargs):
         '''
         Initialise CLUE Agent
@@ -43,6 +44,9 @@ class ClueAgent(Agent):
             regular_update - if False, will only evaluate new advice
                 if True, will evaluate advice it received for a state every time it visits that state
                 default: False
+            sliding_window - the number of previous evaluations used to estimate reliability
+                if None, no sliding window will be used and all evaluations count equally
+                default: None
         '''
         self.name = "CLUE"
         self.state_space = env.state_space
@@ -50,6 +54,7 @@ class ClueAgent(Agent):
         self.initial_estimate = initial_estimate
         self.no_bayes = no_bayes
         self.regular_update = regular_update
+
         if no_bayes:
             self.name += " (Naive)"
         if threshold is None:
@@ -69,6 +74,13 @@ class ClueAgent(Agent):
             else:
                 error_message = "Invalid agent passed to CLUE"
                 raise Exception(error_message)
+
+
+        if sliding_window is None or isinstance(sliding_window,int):
+            self.sliding_window = sliding_window
+        else:
+            error_message = "sliding_window must be None or int, not "+str(sliding_window)
+            raise Exception(error_message)
         self.history = {"rho":{}}
 
     def act(self,state,explore=True):
@@ -215,10 +227,23 @@ class ClueAgent(Agent):
                 for node in actions:
                     advice_state[node] = latest_advice[node]
                 advice_val = self.agent.utility.get_value(advice_state)
-                if advice_val >= best_val:
-                    self.optimal_dict[expert] += 1 # Expert's advice is best
-                else:
-                    self.suboptimal_dict[expert] += 1 # Expert's advice is not optimal
+                if self.sliding_window is not None: # Only count sliding_window number of evaluations
+                    if advice_val >= best_val:
+                        self.evals[expert].append(1) # Expert's advice is best
+                    else:
+                        self.evals[expert].append(0) # Expert's advice is not optimal
+
+                    if len(self.evals[expert])>self.sliding_window:
+                        self.evals[expert] = self.evals[expert][-self.sliding_window:]
+
+                    self.optimal_dict[expert] = np.sum(self.evals[expert])
+                    self.suboptimal_dict[expert] = len(self.evals[expert])-self.optimal_dict[expert]
+
+                else: # Count all evaluations
+                    if advice_val >= best_val:
+                        self.optimal_dict[expert] += 1 # Expert's advice is best
+                    else:
+                        self.suboptimal_dict[expert] += 1 # Expert's advice is not optimal
                 # Update parameters
                 self.beta_parameters[expert] = (self.optimal_dict[expert],self.suboptimal_dict[expert])
 
@@ -237,6 +262,7 @@ class ClueAgent(Agent):
         self.optimal_dict = {}
         self.suboptimal_dict = {}
         self.rho = {}
+        self.evals = {}
         for expert in panel.experts:
             self.state_table_dict[expert] = StateTable(self.state_space)
             self.beta_parameters[expert] = (self.initial_estimate[0],self.initial_estimate[1])
@@ -244,6 +270,8 @@ class ClueAgent(Agent):
             self.suboptimal_dict[expert] = self.initial_estimate[1]
             self.history["rho"][expert] = []
             self.rho[expert] = self.initial_estimate[0]/(self.initial_estimate[0]+self.initial_estimate[1])
+            if self.sliding_window is not None:
+                self.evals[expert] = []
 
     def takes_advice(self):
         '''
