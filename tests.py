@@ -9,11 +9,13 @@ This script runs the full panel comparison experiment shown in the paper.
 EXPERIMENT DETAILS
 '''
 # Number of trials
-trials = 80000
+#trials = 80000
+trials = 10000
 # Number of runs
-runs = 100
+#runs = 100
+runs = 10
 # List of agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance","Naive CLUE"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","CLUE Regular Update"]
 # Dict of panels
 panel_dict = {
 "Single_Bad":[0],
@@ -21,10 +23,11 @@ panel_dict = {
 "Varied_Panel":[0,0.1,0.25,0.5,0.75,0.9,1]
 }
 # Number of variables in env
-num_chance = 10 # Number of state variables (|S|=2^num_chance)
+#num_chance = 10 # Number of state variables (|S|=2^num_chance)
+num_chance = 7
 num_decision = 3 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "panel_comparison_random_envs"
+exp_name = "regular_update"
 
 '''
 RUN EXPERIMENT

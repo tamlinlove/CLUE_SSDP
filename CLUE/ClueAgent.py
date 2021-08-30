@@ -11,7 +11,16 @@ class ClueAgent(Agent):
     Class for a CLUE (Cautiously Learning with Unreliable Experts) agent
     Takes advice, estimates reliability of experts and combines advice in Bayesian way
     '''
-    def __init__(self,env,agent=None,trials=None,initial_estimate=[1,1],threshold=None,no_bayes=False,**kwargs):
+    def __init__(
+        self,
+        env,
+        agent=None,
+        trials=None,
+        initial_estimate=[1,1],
+        threshold=None,
+        no_bayes=False,
+        regular_update=False,
+        **kwargs):
         '''
         Initialise CLUE Agent
 
@@ -31,12 +40,16 @@ class ClueAgent(Agent):
             no_bayes - if True, will only follow advice of most reliable expert, discarding the rest
                     if False, will act as a regular CLUE agent, combining advice through Bayes rule
                 default: False
+            regular_update - if False, will only evaluate new advice
+                if True, will evaluate advice it received for a state every time it visits that state
+                default: False
         '''
         self.name = "CLUE"
         self.state_space = env.state_space
         self.action_space = env.action_space
         self.initial_estimate = initial_estimate
         self.no_bayes = no_bayes
+        self.regular_update = regular_update
         if no_bayes:
             self.name += " (Naive)"
         if threshold is None:
@@ -179,9 +192,19 @@ class ClueAgent(Agent):
         self.agent.learn(state,actions,reward)
         # Add advice to state table
         for expert in self.state_table_dict:
-            if advice[expert] is not None: # Advice was given this trial
-                # Add advice to table
+            # Add advice to table
+            if advice[expert] is not None:
                 self.state_table_dict[expert].add_to_table(state,advice[expert])
+
+            # Decide between regular update or update only on receiving new advice
+            if self.regular_update:
+                # Fetch the latest advice (could be this trial or earlier)
+                latest_advice = self.state_table_dict[expert].get_value(state)
+            else:
+                # Only fetch advice from this trial (could be None)
+                latest_advice = advice[expert]
+
+            if latest_advice is not None: # Advice was given this trial
                 # Evaluate advice
                 state_values,indices = self.agent.score_state(state)
                 best_val = max(state_values)
@@ -190,7 +213,7 @@ class ClueAgent(Agent):
                 for node in self.state_space:
                     advice_state[node] = state[node]
                 for node in actions:
-                    advice_state[node] = advice[expert][node]
+                    advice_state[node] = latest_advice[node]
                 advice_val = self.agent.utility.get_value(advice_state)
                 if advice_val >= best_val:
                     self.optimal_dict[expert] += 1 # Expert's advice is best
