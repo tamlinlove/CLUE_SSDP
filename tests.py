@@ -25,10 +25,10 @@ panel_dict = {
 }
 # Number of variables in env
 #num_chance = 10 # Number of state variables (|S|=2^num_chance)
-num_chance = 7
-num_decision = 3 # Number of action variables (|A|=2^num_decision)
+num_chance = 10
+num_decision = 1 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "regular_update"
+exp_name = "adversarial"
 
 '''
 RUN EXPERIMENT

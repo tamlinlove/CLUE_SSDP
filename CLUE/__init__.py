@@ -17,6 +17,7 @@ from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
+from BestCaseClueAgent import BestCaseClueAgent
 
 # Experts
 from Expert import Expert
