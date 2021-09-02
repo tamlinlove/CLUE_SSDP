@@ -20,7 +20,6 @@ from PartiallyReliableExpert import PartiallyReliableExpert
 takes_advice = {
     "Baseline Agent":False,
     "CLUE":True,
-    "CLUE Regular Update":True,
     "Decayed Reliance":True,
     "NAF":True,
     "Naive CLUE":True,
@@ -31,7 +30,6 @@ takes_advice = {
 keeps_rho_history = {
     "Baseline Agent":False,
     "CLUE":True,
-    "CLUE Regular Update":True,
     "Decayed Reliance":False,
     "NAF":False,
     "Naive CLUE":True,
@@ -123,8 +121,6 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
             agents[agent] = ClueAgent(env,trials=trials,**kwargs)
-        elif agent == "CLUE Regular Update":
-            agents[agent] = ClueAgent(env,trials=trials,regular_update=True,**kwargs)
         elif agent == "Decayed Reliance":
             agents[agent] = DecayedRelianceAgent(env,trials,**kwargs)
         elif agent == "NAF":

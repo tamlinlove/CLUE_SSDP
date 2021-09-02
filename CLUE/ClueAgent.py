@@ -19,7 +19,7 @@ class ClueAgent(Agent):
         initial_estimate=[1,1],
         threshold=None,
         no_bayes=False,
-        regular_update=False,
+        regular_update=True,
         sliding_window=None,
         **kwargs):
         '''
@@ -43,7 +43,7 @@ class ClueAgent(Agent):
                 default: False
             regular_update - if False, will only evaluate new advice
                 if True, will evaluate advice it received for a state every time it visits that state
-                default: False
+                default: True
             sliding_window - the number of previous evaluations used to estimate reliability
                 if None, no sliding window will be used and all evaluations count equally
                 default: None
