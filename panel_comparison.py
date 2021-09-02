@@ -13,7 +13,7 @@ trials = 80000
 # Number of runs
 runs = 100
 # List of agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
 # Dict of panels
 panel_dict = {
 "Single_Bad":[0],

@@ -29,7 +29,7 @@ runs = 10 # Number of runs, each run the agent learns from scratch
 AGENTS
 '''
 # Create some agents, store in dictionary
-agent_list = ["True Policy Agent","Baseline Agent","CLUE","NAF"]
+agent_list = ["True Policy Agent","Baseline Agent","CLUE","NAF","Decayed Reliance"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials,threshold=0.25)
 
 '''

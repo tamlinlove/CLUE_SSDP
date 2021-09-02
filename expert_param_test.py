@@ -25,7 +25,7 @@ gammas = [0.001,0.01,0.1,1] # Values of gamma to be tested
 AGENTS
 '''
 # Create some agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials)
 
 '''

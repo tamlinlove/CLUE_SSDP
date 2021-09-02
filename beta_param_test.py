@@ -25,7 +25,7 @@ betas = [1,10,100,1000] # Values of beta to be tested
 AGENTS
 '''
 # Create some agents, do not include CLUE
-agent_list = ["True Policy Agent","Baseline Agent","NAF"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","Decayed Reliance"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials)
 # Create different CLUE agents
 for a in alphas:
