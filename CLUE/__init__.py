@@ -18,6 +18,7 @@ from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from BestCaseClueAgent import BestCaseClueAgent
+from ClueExplorer import ClueExplorer
 
 # Experts
 from Expert import Expert

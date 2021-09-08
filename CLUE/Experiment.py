@@ -10,6 +10,7 @@ from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
+from ClueExplorer import ClueExplorer
 
 from RandomSSDP import RandomSSDP
 
@@ -20,6 +21,7 @@ from PartiallyReliableExpert import PartiallyReliableExpert
 takes_advice = {
     "Baseline Agent":False,
     "CLUE":True,
+    "CLUE Explorer":True,
     "Decayed Reliance":True,
     "NAF":True,
     "Naive CLUE":True,
@@ -30,6 +32,7 @@ takes_advice = {
 keeps_rho_history = {
     "Baseline Agent":False,
     "CLUE":True,
+    "CLUE Explorer":True,
     "Decayed Reliance":False,
     "NAF":False,
     "Naive CLUE":True,
@@ -108,6 +111,7 @@ def make_agents(agent_list,env,trials,**kwargs):
             "Decayed Reliance" - Agent with decayed reliance on advice
             "NAF" - NAF agent
             "Naive CLUE" - CLUE with no_bayes set to True
+            "PRQ" - PRQ from Policy Reuse
             "True Policy Agent" - true policy agent
         env - instance of InfluenceDiagram class representing environment
         trials - number of trials
@@ -120,7 +124,10 @@ def make_agents(agent_list,env,trials,**kwargs):
         if agent == "Baseline Agent":
             agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
-            agents[agent] = ClueAgent(env,trials=trials,**kwargs)
+            #agents[agent] = ClueAgent(env,trials=trials,**kwargs)
+            agents[agent] = ClueExplorer(env,trials,**kwargs)
+        elif agent == "CLUE Explorer":
+            agents[agent] = ClueExplorer(env,trials,**kwargs)
         elif agent == "Decayed Reliance":
             agents[agent] = DecayedRelianceAgent(env,trials,**kwargs)
         elif agent == "NAF":
@@ -290,7 +297,7 @@ def panel_comparison_partially_reliable_experts(env,agent_list,panel_dict,trials
                 rewards[agent][r,:] = run_standard(env,agents[agent],trials)
     return rewards,rhos
 
-def panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=False,display_interval=10,num_chance=10,num_decision=3):
+def panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=False,display_interval=10,num_chance=10,num_decision=3,**kwargs):
     '''
     Run an experiment comparing rewards obtained over trials by each agent-panel configuration
     Each run on a different randomly generated environment
@@ -333,7 +340,7 @@ def panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=False
         # Initialise environment
         env = RandomSSDP(num_chance=num_chance,num_decision=num_decision,seed=r)
         # Initialise agents
-        agents = make_agents(agent_list,env,trials)
+        agents = make_agents(agent_list,env,trials,**kwargs)
         # Initialise panels
         panels = make_panels(panel_dict,env)
         # Run

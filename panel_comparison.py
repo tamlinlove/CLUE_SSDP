@@ -13,7 +13,8 @@ trials = 80000
 # Number of runs
 runs = 100
 # List of agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
+#agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
 # Dict of panels
 panel_dict = {
 "Single_Bad":[0],
@@ -24,7 +25,7 @@ panel_dict = {
 num_chance = 10 # Number of state variables (|S|=2^num_chance)
 num_decision = 3 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "panel_comparison_random_envs"
+exp_name = "clue_explorer_panel_comparison"
 
 '''
 RUN EXPERIMENT

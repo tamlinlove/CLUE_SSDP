@@ -17,7 +17,7 @@ env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3)
 EXPERIMENT DETAILS
 '''
 trials = 10000 # Number of trials each run
-runs = 2 # Number of runs, each run the agent learns from scratch
+runs = 100 # Number of runs, each run the agent learns from scratch
 mus = [1,10,100,1000] # Values of mu to be tested
 gammas = [0.001,0.01,0.1,1] # Values of gamma to be tested
 
@@ -25,7 +25,8 @@ gammas = [0.001,0.01,0.1,1] # Values of gamma to be tested
 AGENTS
 '''
 # Create some agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
+#agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials)
 
 '''

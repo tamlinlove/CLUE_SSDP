@@ -25,12 +25,14 @@ betas = [1,10,100,1000] # Values of beta to be tested
 AGENTS
 '''
 # Create some agents, do not include CLUE
-agent_list = ["True Policy Agent","Baseline Agent","NAF","Decayed Reliance"]
+#agent_list = ["True Policy Agent","Baseline Agent","NAF","Decayed Reliance"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF"]
 agents = CLUE.Experiment.make_agents(agent_list,env,trials)
 # Create different CLUE agents
 for a in alphas:
     for b in betas:
-        agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueAgent(env,trials=trials,initial_estimate=[a,b])
+        #agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueAgent(env,trials=trials,initial_estimate=[a,b])
+        agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueExplorer(env,trials,initial_estimate=[a,b])
 
 '''
 PANEL OF EXPERTS

@@ -43,7 +43,7 @@ def smooth(y_mean,y_std,trials,reward_range=[None,None]):
     high = lowess(high, x, frac= 0.1, it=0, return_sorted=False)
     return y,low,high
 
-def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None]):
+def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None],display=True):
     '''
     Read reward csvs into arrays
 
@@ -57,6 +57,8 @@ def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None
             a value of None corresponds to no bound
             shaded areas will not go above and below these values
             default - [None,None]
+        display - a boolean, if True will print regular updates on plotting progress
+            default - True
     Output:
         reward_means - dict mapping agent to smoothed reward curve
             reward_means[agent] = array of rewards
@@ -88,6 +90,8 @@ def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None
         agent = header[0]
         panel = header[1]
         if accepted_panels is None or panel in accepted_panels or panel == "":
+            if display:
+                print("Processing "+filename)
             reward_list = []
             for row in reader:
                 reward_list.append(row)
@@ -494,7 +498,7 @@ def plot_rhos(base_path,trials,accepted_panels=None,panel_titles=None):
             panel = panels[i]
             for rel in rels[panel]:
                 rel_str = str(float(rel))
-                #print(agent+" : "+panel+" : "+rel_str+" : converged to "+str(rhos[agent][panel][rel][-1]))
+                print(agent+" : "+panel+" : "+rel_str+" : converged to "+str(rhos[agent][panel][rel][-1]))
                 ax[i].fill_between(x,rho_low[agent][panel][rel], rho_high[agent][panel][rel], alpha=0.2,color=colours[rel_str])
                 l, = ax[i].plot(rhos[agent][panel][rel],label=rel_str,color=colours[rel_str])
                 if rel_str not in plot_dict:

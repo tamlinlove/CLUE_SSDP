@@ -10,12 +10,13 @@ EXPERIMENT DETAILS
 '''
 # Number of trials
 #trials = 80000
-trials = 80000
+trials = 10000
 # Number of runs
 #runs = 100
-runs = 100
+runs = 10
 # List of agents
-agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","CLUE Regular Update"]
+agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","CLUE Explorer"]
+#agent_list = ["CLUE Explorer"]
 
 # Dict of panels
 panel_dict = {
@@ -23,19 +24,27 @@ panel_dict = {
 "Single_Good":[1],
 "Varied_Panel":[0,0.1,0.25,0.5,0.75,0.9,1]
 }
+'''
+panel_dict = {
+"Random":[0.5],
+"Pretty Bad":[0.25],
+"Pretty Good":[0.75]
+}
+'''
+
 # Number of variables in env
 #num_chance = 10 # Number of state variables (|S|=2^num_chance)
-num_chance = 10
-num_decision = 1 # Number of action variables (|A|=2^num_decision)
+num_chance = 7
+num_decision = 3 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "adversarial"
+exp_name = "explore_panel_random"
 
 '''
 RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
 print("======Running experiment======")
-rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,num_chance=num_chance,num_decision=num_decision)
+rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,display_interval=2,num_chance=num_chance,num_decision=num_decision,threshold=0.25)
 # Save results to csv
 print("======Saving results======")
 CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory=exp_name)
@@ -51,6 +60,13 @@ panel_titles = {
 "Single_Bad":"Single Unreliable Expert\n($\\rho_{true}=0$)",
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
+'''
+panel_titles = {
+"Random":"$\\rho_{true}=0.5$",
+"Pretty Bad":"$\\rho_{true}=0.25$",
+"Pretty Good":"$\\rho_{true}=0.75$"
+}
+'''
 # Set clip range for shaded area
 reward_range = [-1,1]
 # Plot graphs
