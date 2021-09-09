@@ -345,9 +345,6 @@ def plot_heatmap(fig_path,filename,panel_titles,vals,x_label,x_vals,y_label,y_va
     plt.close()
 
 def plot_reward_comparison_individual(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None]):
-    '''
-    TODO
-    '''
     path = "results/"+base_path
     fig_path = "figures/"+base_path
     reward_path = path+"rewards/"
@@ -367,24 +364,30 @@ def plot_reward_comparison_individual(base_path,trials,accepted_panels=None,pane
     # Plot
     x = np.arange(trials)
     file_dir = fig_path+"agent_comparison/"
+
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
     for i in range(len(panels)):
         panel = accepted_panels[i]
+        fig, ax = plt.subplots(ncols=1,figsize=(5,4))
         for agent in agents:
             agent_name = agent_names[agent]
             if takes_advice[agent]:
-                plt.fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
-                plt.plot(x,reward_means[agent][panel],label=agent_name)
+                ax.fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
+                ax.plot(x,reward_means[agent][panel],label=agent_name)
             else:
-                plt.fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
-                plt.plot(x,reward_means[agent],label=agent_name)
-            plt.xlabel("Trials")
-            plt.ylabel("Average Reward")
+                ax.fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
+                ax.plot(x,reward_means[agent],label=agent_name)
+            ax.set_xlabel("Trials")
+            ax.set_ylabel("Average Reward")
         if panel_titles is not None:
-            plt.title(panel_titles[panel])
+            ax.set_title(panel_titles[panel])
         else:
-            plt.title(panel)
-        plt.legend()
+            ax.set_title(panel)
+        bottom = 0.5
+        wspace = 0.45
+        fig.subplots_adjust(bottom=bottom, wspace=wspace)
+        plt.legend(labels=agent_labels,loc='upper left',
+                 bbox_to_anchor=(0, -bottom/2),fancybox=False, shadow=False, ncol=len(agents))
         plt.savefig(file_dir+panel+"_reward_comparison.png",dpi=256)
         plt.close()
 
@@ -553,10 +556,14 @@ def plot_rhos_individual(base_path,trials,accepted_panels=None,panel_titles=None
     file_dir = fig_path+"rho_comparison/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
 
+    plt.rcParams["figure.figsize"] = (4,4.8)
+
     c_map = plt.cm.get_cmap("tab20", len(all_rels))
     colours = {}
     for rel in all_rels_str:
         colours[rel] = c_map(all_rels_str.index(rel))
+    bottom = 0.5
+    wspace = 0.45
 
     for agent in agents:
         for panel in panels:
@@ -570,6 +577,63 @@ def plot_rhos_individual(base_path,trials,accepted_panels=None,panel_titles=None
                     plt.title(panel_titles[panel])
                 else:
                     plt.title(panel)
-            plt.legend()
+            plt.legend(labels=agent_labels,loc='upper center',
+                     bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=len(agents))
             plt.savefig(file_dir+agent+"_"+panel+".png",dpi=256)
             plt.close()
+
+def plot_panel_comparison(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None],fill=True):
+    path = "results/"+base_path
+    fig_path = "figures/"+base_path
+    reward_path = path+"rewards/"
+
+    reward_means,reward_low,reward_high,takes_advice,agents,panels = read_rewards(reward_path,trials,accepted_panels,reward_range=reward_range)
+
+    if accepted_panels is None:
+        accepted_panels = panels
+
+    # Correct agent names
+
+
+    # Plot
+    x = np.arange(trials)
+    file_dir = fig_path+"panel_comparison/"
+
+    #print(reward_means)
+
+    advice_agents = []
+    for agent in agents:
+        #print(agent)
+        if takes_advice[agent]:
+            advice_agents.append(agent)
+
+    fig, ax = plt.subplots(ncols=len(advice_agents),figsize=(4*len(advice_agents),4.8))
+    plot_list = []
+
+    os.makedirs(os.path.dirname(file_dir), exist_ok=True)
+    for j in range(len(advice_agents)):
+        agent = advice_agents[j]
+        for i in range(len(panels)):
+            panel = accepted_panels[i]
+            if fill:
+                ax[j].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
+            l, = ax[j].plot(x,reward_means[agent][panel],label=panel)
+            plot_list.append(l)
+        if fill:
+            ax[j].fill_between(x, reward_low["Baseline Agent"], reward_high["Baseline Agent"], alpha=0.2)
+        l, = ax[j].plot(x,reward_means["Baseline Agent"],label="Baseline Agent")
+        plot_list.append(l)
+        ax[j].set_xlabel("Trials")
+        ax[j].set_ylabel("Average Reward")
+        ax[j].set_title(agent)
+    bottom = 0.5
+    wspace = 0.45
+    fig.subplots_adjust(bottom=bottom, wspace=wspace)
+    plt.legend(labels=panels+["Baseline"],loc='upper center',
+             bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=len(panels+["Baseline"]))
+    name = file_dir+"panel_comparison"
+    if not fill:
+        name += "_nofill"
+    name += ".png"
+    plt.savefig(name,dpi=256)
+    plt.close()

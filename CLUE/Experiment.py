@@ -11,6 +11,7 @@ from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from ClueExplorer import ClueExplorer
+from PRQAgent import PRQAgent
 
 from RandomSSDP import RandomSSDP
 
@@ -25,6 +26,7 @@ takes_advice = {
     "Decayed Reliance":True,
     "NAF":True,
     "Naive CLUE":True,
+    "PRQ":True,
     "True Policy Agent":False
 }
 
@@ -36,6 +38,7 @@ keeps_rho_history = {
     "Decayed Reliance":False,
     "NAF":False,
     "Naive CLUE":True,
+    "PRQ":False,
     "True Policy Agent":False
 }
 
@@ -134,6 +137,8 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = NaiveAdviceFollower(env,trials=trials,**kwargs)
         elif agent == "Naive CLUE":
             agents[agent] = ClueAgent(env,trials=trials,no_bayes=True,**kwargs)
+        elif agent == "PRQ":
+            agents[agent] = PRQAgent(env,trials=trials,**kwargs)
         elif agent == "True Policy Agent":
             agents[agent] = TruePolicyAgent(env,**kwargs)
     return agents

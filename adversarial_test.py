@@ -2,7 +2,7 @@ import CLUE
 import numpy as np
 
 '''
-This script runs the full panel comparison experiment shown in the paper.
+This script runs the adversarial test
 '''
 
 '''
@@ -10,32 +10,35 @@ EXPERIMENT DETAILS
 '''
 # Number of trials
 trials = 80000
+#trials = 10000
 # Number of runs
 runs = 100
+#runs = 10
 # List of agents
-#agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE","Decayed Reliance"]
 agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
+
 # Dict of panels
 panel_dict = {
 "Single_Bad":[0],
 "Single_Good":[1],
 "Varied_Panel":[0,0.1,0.25,0.5,0.75,0.9,1]
 }
+
 # Number of variables in env
 num_chance = 10 # Number of state variables (|S|=2^num_chance)
-num_decision = 3 # Number of action variables (|A|=2^num_decision)
+num_decision = 1 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "additional_comparisons"
+exp_name = "adversarial"
 
 '''
 RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
 print("======Running experiment======")
-#rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,num_chance=num_chance,num_decision=num_decision)
+rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,display_interval=2,num_chance=num_chance,num_decision=num_decision,threshold=0.25)
 # Save results to csv
 print("======Saving results======")
-#CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory=exp_name)
+CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory=exp_name)
 '''
 PLOT RESULTS
 '''

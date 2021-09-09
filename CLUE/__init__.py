@@ -19,6 +19,7 @@ from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from BestCaseClueAgent import BestCaseClueAgent
 from ClueExplorer import ClueExplorer
+from PRQAgent import PRQAgent
 
 # Experts
 from Expert import Expert
