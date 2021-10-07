@@ -1,6 +1,8 @@
-![alt text](images/panel_comparison.png "Agent performance comparison across different panels of experts")
+![alt text](images/CLUE_ARL.png "A high-level overview of the CLUE algorithm")
 # CLUE for Single-Stage Decision Problems
 This repo contains the implementation of CLUE (Cautiously Learning with Unreliable Experts) for Single-Stage Decision Problems, from the paper Learning Who to Trust: Policy Learning in Single-Stage Decision Problems with Unreliable Expert Advice. The CLUE framework allows you to incorporate the advice of multiple, potentially unreliable expert advisors into the Single-Stage Decision Problem loop. CLUE agents can benefit from advice from reliable experts, but are robust against advice from unreliable ones.
+
+A preprint of the paper, including supplementary material, is available [here](https://tamlinlove.github.io/publications.html).
 
 ## Requirements
 This implementation requires Python 3.8.6+, and has several dependencies, listed in [requirements.txt](requirements.txt). To install all dependencies, execute the following command in the main CLUE_SSDP directory.
@@ -15,17 +17,41 @@ python simple_example.py
 ```
 The resulting graphs can be found in the figures directory.
 
+### Experiments
+The full panel composition experiment can be run using
+```panel_comparison
+python panel_comparison.py
+```
+This is a significantly larger experiment (trials = 80,000, runs = 100, |S|=1024, |A|=8) and may take some time to run. These parameters may be changed by editing [panel_comparison.py](panel_comparison.py).
+
+
 The experiment from Section 4.2. of the paper, titled **Panel Compositions**, can be run using
 ```panel_comparison
 python panel_comparison.py
 ```
 This is a significantly larger experiment (trials = 80,000, runs = 100, |S|=1024, |A|=8) and may take some time to run. These parameters may be changed by editing [panel_comparison.py](panel_comparison.py).
 
-The experiment from Section 4.3. of the paper, titled **Initial Reliability Estimates**, can be run using
+Additional comparisons with probabilistic policy reuse can be run using
+```additional_comparisons_tests
+python additional_comparisons_tests.py
+```
+
+The adversarial experiment can be run using
+```adversarial_test
+python adversarial_test.py
+```
+
+The test with an alternate type of simulated expert can be run using
+```partially_reliable_experts
+python partially_reliable_experts.py
+```
+
+The test of initial beta distribution values can be run using
 ```beta_param_test
 python beta_param_test.py
 ```
-The experiment from Section 4.4. of the paper, titled **Expert Parameters**, can be run using
+
+The test of expert interaction parameters can be run using
 ```expert_param_test
 python expert_param_test.py
 ```
