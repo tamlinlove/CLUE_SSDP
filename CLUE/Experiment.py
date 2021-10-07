@@ -10,7 +10,6 @@ from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
-from ClueExplorer import ClueExplorer
 from PRQAgent import PRQAgent
 
 from RandomSSDP import RandomSSDP
@@ -22,7 +21,6 @@ from PartiallyReliableExpert import PartiallyReliableExpert
 takes_advice = {
     "Baseline Agent":False,
     "CLUE":True,
-    "CLUE Explorer":True,
     "Decayed Reliance":True,
     "NAF":True,
     "Naive CLUE":True,
@@ -34,7 +32,6 @@ takes_advice = {
 keeps_rho_history = {
     "Baseline Agent":False,
     "CLUE":True,
-    "CLUE Explorer":True,
     "Decayed Reliance":False,
     "NAF":False,
     "Naive CLUE":True,
@@ -127,10 +124,7 @@ def make_agents(agent_list,env,trials,**kwargs):
         if agent == "Baseline Agent":
             agents[agent] = BaselineAgent(env,trials,**kwargs)
         elif agent == "CLUE":
-            #agents[agent] = ClueAgent(env,trials=trials,**kwargs)
-            agents[agent] = ClueExplorer(env,trials,**kwargs)
-        elif agent == "CLUE Explorer":
-            agents[agent] = ClueExplorer(env,trials,**kwargs)
+            agents[agent] = ClueAgent(env,trials,**kwargs)
         elif agent == "Decayed Reliance":
             agents[agent] = DecayedRelianceAgent(env,trials,**kwargs)
         elif agent == "NAF":

@@ -14,9 +14,12 @@ class ClueAgent(Agent):
     def __init__(
         self,
         env,
+        trials,
         agent=None,
-        trials=None,
         initial_estimate=[1,1],
+        eps_start=1,
+        eps_end=0,
+        eps_fraction=0.8,
         threshold=None,
         no_bayes=False,
         regular_update=True,
@@ -54,6 +57,12 @@ class ClueAgent(Agent):
         self.initial_estimate = initial_estimate
         self.no_bayes = no_bayes
         self.regular_update = regular_update
+
+        self.eps_start = eps_start
+        self.eps_end = eps_end
+        self.eps_fraction = eps_fraction
+
+        self.trials = trials
 
         if no_bayes:
             self.name += " (Naive)"
@@ -94,76 +103,91 @@ class ClueAgent(Agent):
         Output:
             action - dict mapping action variable names to values
         '''
+        # Recalculate epsilon
+        fraction = min(1.0, self.trial_count / self.epsilon_steps)
+        self.epsilon = self.eps_start + fraction * (self.eps_end - self.eps_start)
+
         # Check if agent has been advised previously
         advice_dict = self.aggregate_advice(state)
         advice_given = bool(advice_dict)
         best_action = None
-        # Calculate trust in each expert
-        if advice_given:
-            for expert in self.state_table_dict:
-                alpha = self.beta_parameters[expert][0]
-                beta = self.beta_parameters[expert][1]
-                rho = alpha/(alpha+beta)
-                rho = max(rho,0) # Just in case
-                #rho = rho**2
-                self.rho[expert] = rho
-                self.history["rho"][expert].append(rho) # Add new rho to rho history
 
-            if self.no_bayes:
-                # Select the action advised by the best expert, with probability E[rho(expert)]
-                # Ignore consensus, etc.
-                best_expert = max(self.rho, key=self.rho.get)
-                trust = np.random.choice([True,False],p=[self.rho[best_expert],1-self.rho[best_expert]])
-                if trust:
-                    best_action = advice_dict[best_expert]
-            else:
-                # Calculate best advised action
-                combinations = list(product(*self.action_space.values()))
-                keys = list(self.action_space.keys())
-                # Calculate likelihood terms
-                likelihoods = np.zeros(len(combinations))
-                for i in range(len(combinations)):
-                    likelihood = 1
-                    for expert in advice_dict:
-                        all_same = True
-                        # Check if expert has advised this action
-                        for j in range(len(keys)):
-                            if advice_dict[expert][keys[j]] != combinations[i][j]:
-                                all_same = False
-                                break
-                        if all_same:
-                            likelihood *= self.rho[expert] # Expert advised action
-                        else:
-                            likelihood *= (1-self.rho[expert])/(len(combinations)-1) # Expert did not advise action
-                    likelihoods[i] = likelihood
-                if np.sum(likelihoods)==0:
-                    # Something is wrong, ignore for now
-                    trust = False
+        # Choose whether to exploit or explore
+        if explore:
+            exploit = np.random.choice([True,False],p=[1-self.epsilon,self.epsilon]) # Maybe explore
+        else:
+            exploit = True # Always exploit
+
+        for expert in self.state_table_dict:
+            alpha = self.beta_parameters[expert][0]
+            beta = self.beta_parameters[expert][1]
+            rho = alpha/(alpha+beta)
+            rho = max(rho,0) # Just in case
+            #rho = rho**2
+            self.rho[expert] = rho
+            self.history["rho"][expert].append(rho) # Add new rho to rho history
+
+        if exploit:
+            return self.agent.act(state,explore=False)
+        else:
+            # Calculate trust in each expert
+            if advice_given:
+                if self.no_bayes:
+                    # Select the action advised by the best expert, with probability E[rho(expert)]
+                    # Ignore consensus, etc.
+                    best_expert = max(self.rho, key=self.rho.get)
+                    trust = np.random.choice([True,False],p=[self.rho[best_expert],1-self.rho[best_expert]])
+                    if trust:
+                        best_action = advice_dict[best_expert]
                 else:
-                    # Calculate probability for each action
-                    probs = np.zeros(len(combinations))
+                    # Calculate best advised action
+                    combinations = list(product(*self.action_space.values()))
+                    keys = list(self.action_space.keys())
+                    # Calculate likelihood terms
+                    likelihoods = np.zeros(len(combinations))
                     for i in range(len(combinations)):
-                        probs[i] = likelihoods[i]/np.sum(likelihoods)
-                    best_index = np.argmax(probs)
-                    # Choose whether to follow advice or act epsilon greedy
-                    if probs[best_index]<self.threshold:
+                        likelihood = 1
+                        for expert in advice_dict:
+                            all_same = True
+                            # Check if expert has advised this action
+                            for j in range(len(keys)):
+                                if advice_dict[expert][keys[j]] != combinations[i][j]:
+                                    all_same = False
+                                    break
+                            if all_same:
+                                likelihood *= self.rho[expert] # Expert advised action
+                            else:
+                                likelihood *= (1-self.rho[expert])/(len(combinations)-1) # Expert did not advise action
+                        likelihoods[i] = likelihood
+                    if np.sum(likelihoods)==0:
+                        # Something is wrong, ignore for now
                         trust = False
                     else:
-                        trust = np.random.choice([True,False],p=[probs[best_index],1-probs[best_index]])
-                        if trust:
-                            best_action = {}
-                            for i in range(len(keys)):
-                                best_action[keys[i]] = combinations[best_index][i]
-        else:
-            trust = False
-            for expert in self.state_table_dict:
-                self.history["rho"][expert].append(self.rho[expert]) # No advice, so add last known rho to history
-
-        # Act
-        if explore and trust and best_action is not None: # Follow advice
-            return best_action
-        else: # Don't follow advice
-            return self.agent.act(state,explore)
+                        # Calculate probability for each action
+                        probs = np.zeros(len(combinations))
+                        for i in range(len(combinations)):
+                            probs[i] = likelihoods[i]/np.sum(likelihoods)
+                        best_index = np.argmax(probs)
+                        # Choose whether to follow advice or act epsilon greedy
+                        if probs[best_index]<self.threshold:
+                            trust = False
+                        else:
+                            trust = np.random.choice([True,False],p=[probs[best_index],1-probs[best_index]])
+                            if trust:
+                                best_action = {}
+                                for i in range(len(keys)):
+                                    best_action[keys[i]] = combinations[best_index][i]
+            else:
+                trust = False
+            # Act
+            if trust and best_action is not None: # Follow advice
+                return best_action
+            else: # Don't follow advice
+                action = {}
+                # Randomly make decisions
+                for node in self.action_space:
+                    action[node] = np.random.choice(self.action_space[node])
+                return action
 
     def aggregate_advice(self,state):
         '''
@@ -201,6 +225,7 @@ class ClueAgent(Agent):
             advice - a dict mapping expert name to advice, where advice is an action dict
 
         '''
+        self.trial_count += 1
         # Learn
         self.agent.learn(state,actions,reward)
         # Add advice to state table
@@ -257,6 +282,9 @@ class ClueAgent(Agent):
             panel - a panel of experts, instance of Panel class
         '''
         self.agent.reset() # Reset agent
+        self.trial_count = 0 # Reset number of trials
+        self.epsilon = self.eps_start # Reset epsilon
+        self.epsilon_steps = self.eps_fraction * float(self.trials) # Reset epsilon decay
         self.history = {"rho":{}} # Reset history
         self.state_table_dict = {} # Reset advice table
         self.beta_parameters = {} # Reset reliability estimates

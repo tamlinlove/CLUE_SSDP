@@ -60,4 +60,6 @@ panel_titles = {
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
 print("======Plotting graphs======")
-CLUE.Plot.plot_expert_heatmap(base_path,mus,gammas,panel_titles)
+#vrange = None
+vrange = [-4000,6000]
+CLUE.Plot.plot_expert_heatmap(base_path,mus,gammas,panel_titles,vrange=vrange)

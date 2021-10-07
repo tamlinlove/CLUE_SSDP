@@ -9,7 +9,7 @@ This script runs the full panel comparison experiment shown in the paper.
 EXPERIMENT DETAILS
 '''
 # Number of trials
-trials = 80000
+trials = 10000
 # Number of runs
 runs = 100
 # List of agents
@@ -22,15 +22,8 @@ panel_dict = {
 "Single_Good":[1],
 "Varied_Panel":[0,0.1,0.25,0.5,0.75,0.9,1]
 }
-'''
-panel_dict = {
-"Random":[0.5],
-"Pretty Bad":[0.25],
-"Pretty Good":[0.75]
-}
-'''
 # Number of variables in env
-num_chance = 10 # Number of state variables (|S|=2^num_chance)
+num_chance = 7 # Number of state variables (|S|=2^num_chance)
 num_decision = 3 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
 exp_name = "additional_comparisons_panel"
@@ -58,16 +51,10 @@ panel_titles = {
 "Single_Bad":"Single Unreliable Expert\n($\\rho_{true}=0$)",
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
-'''
-panel_titles = {
-"Random":"$\\rho_{true}=0.5$",
-"Pretty Bad":"$\\rho_{true}=0.25$",
-"Pretty Good":"$\\rho_{true}=0.75$"
-}
-'''
 # Set clip range for shaded area
 reward_range = [-1,1]
 # Plot graphs
 CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles)
+CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,fill=False)
 # Plot Rhos
 CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)

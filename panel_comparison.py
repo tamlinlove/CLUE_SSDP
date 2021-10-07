@@ -25,17 +25,17 @@ panel_dict = {
 num_chance = 10 # Number of state variables (|S|=2^num_chance)
 num_decision = 3 # Number of action variables (|A|=2^num_decision)
 # Name of experiment, for saving and plotting
-exp_name = "additional_comparisons"
+exp_name = "panel_comparison_random_envs"
 
 '''
 RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
 print("======Running experiment======")
-#rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,num_chance=num_chance,num_decision=num_decision)
+rewards,rhos = CLUE.Experiment.panel_comparison_random_envs(agent_list,panel_dict,trials,runs,display=True,num_chance=num_chance,num_decision=num_decision)
 # Save results to csv
 print("======Saving results======")
-#CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory=exp_name)
+CLUE.Experiment.save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory=exp_name)
 '''
 PLOT RESULTS
 '''

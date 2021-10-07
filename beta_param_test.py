@@ -32,7 +32,7 @@ agents = CLUE.Experiment.make_agents(agent_list,env,trials)
 for a in alphas:
     for b in betas:
         #agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueAgent(env,trials=trials,initial_estimate=[a,b])
-        agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueExplorer(env,trials,initial_estimate=[a,b])
+        agents["CLUE_"+str(a)+"_"+str(b)] = CLUE.ClueAgent(env,trials,initial_estimate=[a,b])
 
 '''
 PANEL OF EXPERTS
@@ -68,4 +68,6 @@ panel_titles = {
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
 print("======Plotting graphs======")
-CLUE.Plot.plot_beta_heatmap(base_path,alphas,betas,panel_titles)
+#vrange = None
+vrange = [-4000,6000]
+CLUE.Plot.plot_beta_heatmap(base_path,alphas,betas,panel_titles,vrange=vrange)

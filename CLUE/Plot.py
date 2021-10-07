@@ -99,6 +99,7 @@ def read_rewards(reward_path,trials,accepted_panels=None,reward_range=[None,None
             rewards = np.array(reward_list).astype(float)
             y_mean = np.mean(rewards,axis=0)
             y_std = np.std(rewards,axis=0)
+            print(filename+" std:"+str(y_std[-1]))
             y,low,high = smooth(y_mean,y_std,trials,reward_range=reward_range)
             if panel=="": # doesn't take advice
                 reward_means[agent] = np.array(y,dtype=float)
@@ -310,6 +311,7 @@ def plot_heatmap(fig_path,filename,panel_titles,vals,x_label,x_vals,y_label,y_va
             maxs.append(np.max(vals[panel]))
         vmin = np.min(np.array(mins))
         vmax = np.max(np.array(maxs))
+        print(filename+": ("+str(vmin)+","+str(vmax)+")")
     else:
         vmin = vrange[0]
         vmax = vrange[1]
@@ -391,7 +393,7 @@ def plot_reward_comparison_individual(base_path,trials,accepted_panels=None,pane
         plt.savefig(file_dir+panel+"_reward_comparison.png",dpi=256)
         plt.close()
 
-def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None]):
+def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=None,reward_range=[None,None],fill=True):
     '''
     Plot a comparison of rewards
 
@@ -429,17 +431,19 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
     x = np.arange(trials)
     file_dir = fig_path+"agent_comparison/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
-    fig, ax = plt.subplots(ncols=3,figsize=(12,4.8))
+    fig, ax = plt.subplots(ncols=len(panels),figsize=(4*len(panels),4.8))
     plot_list = []
     for i in range(len(panels)):
         panel = accepted_panels[i]
         for agent in agents:
             agent_name = agent_names[agent]
             if takes_advice[agent]:
-                ax[i].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
+                if fill:
+                    ax[i].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
                 l, = ax[i].plot(x,reward_means[agent][panel],label=agent_name)
             else:
-                ax[i].fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
+                if fill:
+                    ax[i].fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
                 l, = ax[i].plot(x,reward_means[agent],label=agent_name)
             plot_list.append(l)
             ax[i].set_xlabel("Trials")
@@ -453,7 +457,11 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
     fig.subplots_adjust(bottom=bottom, wspace=wspace)
     plt.legend(handles = plot_list , labels=agent_labels,loc='upper center',
              bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=len(agents))
-    plt.savefig(file_dir+"reward_comparison.png",dpi=256)
+    fname = file_dir+"reward_comparison"
+    if not fill:
+        fname += "_nofill"
+    fname += ".png"
+    plt.savefig(fname,dpi=256)
     plt.close()
 
 def plot_rhos(base_path,trials,accepted_panels=None,panel_titles=None):
