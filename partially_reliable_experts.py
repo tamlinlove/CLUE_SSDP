@@ -12,7 +12,7 @@ EXPERIMENT DETAILS
 # Number of trials
 trials = 10000
 # Number of runs
-runs = 100
+runs = 10
 # List of agents
 agent_list = ["True Policy Agent","Baseline Agent","NAF","CLUE"]
 # Expert nums
@@ -29,7 +29,7 @@ panel_dict = {}
 for num in expert_nums:
     panel_dict[str(num)] = [num]
 # Multiple panels
-#panel_dict["Varied"] = [0,1,3,5,7]
+panel_dict["Varied"] = [0,1,3,5,7]
 
 '''
 RUN EXPERIMENT
@@ -54,7 +54,7 @@ for num in expert_nums:
 # Set clip range for shaded area
 reward_range = [-1,1]
 # Plot graphs
-#CLUE.Plot.plot_panel_comparison(base_path,trials,panel_titles=panel_titles)
-#CLUE.Plot.plot_panel_comparison(base_path,trials,panel_titles=panel_titles,fill=False)
+CLUE.Plot.plot_panel_comparison(base_path,trials,panel_titles=panel_titles)
+CLUE.Plot.plot_panel_comparison(base_path,trials,panel_titles=panel_titles,fill=False)
 # Plot Rhos
 #CLUE.Plot.plot_rhos_individual(base_path,trials,panel_titles=panel_titles)

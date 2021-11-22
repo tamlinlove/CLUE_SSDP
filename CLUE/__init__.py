@@ -24,6 +24,7 @@ from PRQAgent import PRQAgent
 from Expert import Expert
 from UnreliableExpert import UnreliableExpert
 from PartiallyReliableExpert import PartiallyReliableExpert
+from DegradingExpert import DegradingExpert
 from Panel import Panel
 
 # Helpers

@@ -24,6 +24,7 @@ class ClueAgent(Agent):
         no_bayes=False,
         regular_update=True,
         sliding_window=None,
+        recency=None,
         **kwargs):
         '''
         Initialise CLUE Agent
@@ -50,6 +51,9 @@ class ClueAgent(Agent):
             sliding_window - the number of previous evaluations used to estimate reliability
                 if None, no sliding window will be used and all evaluations count equally
                 default: None
+            recency - If None, beta distribution update will weight all observations equally
+                    If not None, beta distribution update will weight recent observations more
+                    rho = (1-recency)*rho + recency*(alpha/(alpha+beta))
         '''
         self.name = "CLUE"
         self.state_space = env.state_space
@@ -57,6 +61,7 @@ class ClueAgent(Agent):
         self.initial_estimate = initial_estimate
         self.no_bayes = no_bayes
         self.regular_update = regular_update
+        self.recency = recency
 
         self.eps_start = eps_start
         self.eps_end = eps_end
@@ -119,13 +124,18 @@ class ClueAgent(Agent):
             exploit = True # Always exploit
 
         for expert in self.state_table_dict:
-            alpha = self.beta_parameters[expert][0]
-            beta = self.beta_parameters[expert][1]
-            rho = alpha/(alpha+beta)
-            rho = max(rho,0) # Just in case
-            #rho = rho**2
-            self.rho[expert] = rho
-            self.history["rho"][expert].append(rho) # Add new rho to rho history
+            if self.recency is not None:
+                rho = max(self.recent_rho[expert],0) # Just in case
+                self.rho[expert] = rho
+                self.history["rho"][expert].append(rho) # Add new rho to rho history
+            else:
+                alpha = self.beta_parameters[expert][0]
+                beta = self.beta_parameters[expert][1]
+                rho = alpha/(alpha+beta)
+                rho = max(rho,0) # Just in case
+                #rho = rho**2
+                self.rho[expert] = rho
+                self.history["rho"][expert].append(rho) # Add new rho to rho history
 
         if exploit:
             return self.agent.act(state,explore=False)
@@ -242,7 +252,7 @@ class ClueAgent(Agent):
                 # Only fetch advice from this trial (could be None)
                 latest_advice = advice[expert]
 
-            if latest_advice is not None: # Advice was given this trial
+            if latest_advice is not None: # Can update this trial
                 # Evaluate advice
                 state_values,indices = self.agent.score_state(state)
                 best_val = max(state_values)
@@ -272,6 +282,13 @@ class ClueAgent(Agent):
                         self.suboptimal_dict[expert] += 1 # Expert's advice is not optimal
                 # Update parameters
                 self.beta_parameters[expert] = (self.optimal_dict[expert],self.suboptimal_dict[expert])
+                if self.recency is not None:
+                    # Recency weighted moving average
+                    if advice_val >= best_val:
+                        count_update = 1
+                    else:
+                        count_update = 0
+                    self.recent_rho[expert] = (1-self.recency) * self.recent_rho[expert] + count_update * self.recency
 
 
     def reset(self,panel):
@@ -291,6 +308,7 @@ class ClueAgent(Agent):
         self.optimal_dict = {}
         self.suboptimal_dict = {}
         self.rho = {}
+        self.recent_rho = {}
         self.evals = {}
         for expert in panel.experts:
             self.state_table_dict[expert] = StateTable(self.state_space)
@@ -299,6 +317,7 @@ class ClueAgent(Agent):
             self.suboptimal_dict[expert] = self.initial_estimate[1]
             self.history["rho"][expert] = []
             self.rho[expert] = self.initial_estimate[0]/(self.initial_estimate[0]+self.initial_estimate[1])
+            self.recent_rho[expert] = self.rho[expert]
             if self.sliding_window is not None:
                 self.evals[expert] = []
 
