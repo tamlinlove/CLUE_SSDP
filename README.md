@@ -24,13 +24,6 @@ python panel_comparison.py
 ```
 This is a significantly larger experiment (trials = 80,000, runs = 100, |S|=1024, |A|=8) and may take some time to run. These parameters may be changed by editing [panel_comparison.py](panel_comparison.py).
 
-
-The experiment from Section 4.2. of the paper, titled **Panel Compositions**, can be run using
-```panel_comparison
-python panel_comparison.py
-```
-This is a significantly larger experiment (trials = 80,000, runs = 100, |S|=1024, |A|=8) and may take some time to run. These parameters may be changed by editing [panel_comparison.py](panel_comparison.py).
-
 Additional comparisons with probabilistic policy reuse can be run using
 ```additional_comparisons_tests
 python additional_comparisons_tests.py
