@@ -427,11 +427,18 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
         agent_names[agent] = agent.replace("_"," ")
         agent_labels.append(agent_names[agent])
 
+    if len(panels) == 0:
+        panels = ["No Expert"]
+        panel_titles["No Expert"] = "No Expert"
+        accepted_panels.append("No Expert")
+
     # Plot
     x = np.arange(trials)
     file_dir = fig_path+"agent_comparison/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
-    fig, ax = plt.subplots(ncols=len(panels),figsize=(4*len(panels),4.8))
+    fig, ax = plt.subplots(ncols=len(panels),figsize=(8*len(panels),4.8))
+    if len(panels)==1:
+        ax = [ax]
     plot_list = []
     for i in range(len(panels)):
         panel = accepted_panels[i]
@@ -452,8 +459,12 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
                 ax[i].set_title(panel_titles[panel])
             else:
                 ax[i].set_title(panel)
+    if len(panels) == 1:
+        wspace = -0.5
+    else:
+        wspace=0.45
     bottom = 0.5
-    wspace = 0.45
+
     fig.subplots_adjust(bottom=bottom, wspace=wspace)
     plt.legend(handles = plot_list , labels=agent_labels,loc='upper center',
              bbox_to_anchor=(-wspace, -bottom/2),fancybox=False, shadow=False, ncol=len(agents))

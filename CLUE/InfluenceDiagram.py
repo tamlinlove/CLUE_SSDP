@@ -193,7 +193,7 @@ class InfluenceDiagram():
                     self.size_A *= len(self.action_space[node])
         return self.size_S,self.size_A
 
-    def step(self,action):
+    def step(self,action,state=None):
         '''
         Input an action to the environment
 
@@ -202,9 +202,18 @@ class InfluenceDiagram():
             reward = env.step(action)
         Input:
             action - a dict mapping action node names to values
+            state - a dict mapping state node names to values
+                if None, will use the existing state set by the previous call to sample
+                if a dict, will replace the existing state
+                default: None
         Output:
             reward - the reward obtained by inputting the action
         '''
+        if state is not None:
+            self.state = state
+            for node in state:
+                self.state_vars[self.variables[node]] = self.state[node]
+
         for node in action:
             self.state_vars[self.variables[node]] = action[node]
 

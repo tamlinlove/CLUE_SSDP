@@ -19,24 +19,34 @@ from PartiallyReliableExpert import PartiallyReliableExpert
 
 # Dict mapping agent name to whether or not they take panel advice
 takes_advice = {
+    "Adaptive Greedy Baseline Agent":False,
     "Baseline Agent":False,
     "CLUE":True,
     "Decayed Reliance":True,
+    "ETE Baseline Agent":False,
+    "LinUCB Baseline Agent":False,
     "NAF":True,
     "Naive CLUE":True,
     "PRQ":True,
-    "True Policy Agent":False
+    "TS Baseline Agent":False,
+    "True Policy Agent":False,
+    "UCB Baseline Agent":False,
 }
 
 # Dict mapping agent name to whether or not they store rho history
 keeps_rho_history = {
+    "Adaptive Greedy Baseline Agent":False,
     "Baseline Agent":False,
     "CLUE":True,
     "Decayed Reliance":False,
+    "ETE Baseline Agent":False,
+    "LinUCB Baseline Agent":False,
     "NAF":False,
     "Naive CLUE":True,
     "PRQ":False,
-    "True Policy Agent":False
+    "TS Baseline Agent":False,
+    "True Policy Agent":False,
+    "UCB Baseline Agent":False,
 }
 
 def expert_param_test(env,agents,panel_dict,mus,gammas,trials,runs,display=False,display_interval=10):

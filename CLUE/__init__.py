@@ -19,6 +19,11 @@ from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from BestCaseClueAgent import BestCaseClueAgent
 from PRQAgent import PRQAgent
+from LinUCBAgent import LinUCBAgent
+from UCBAgent import UCBAgent
+from TSAgent import TSAgent
+from AdaptiveGreedyAgent import AdaptiveGreedyAgent
+from ETEAgent import ETEAgent
 
 # Experts
 from Expert import Expert
