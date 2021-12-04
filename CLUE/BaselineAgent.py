@@ -44,7 +44,7 @@ class BaselineAgent(Agent):
         self.Q0 = Q0
         self.alpha = alpha
 
-    def act(self,state,explore=True):
+    def act(self,state,explore=True,return_exploit=False):
         '''
         Select an action given a state
 
@@ -52,8 +52,12 @@ class BaselineAgent(Agent):
             state - dict mapping state variable names to values
             explore - whether or not the agent should explore
                 default: True
+            return_exploit = whether or not the function will return the value of exploit
+                default: False
         Output:
             action - dict mapping action variable names to values
+            exploit - boolean. If True, the agent exploited, else explored.
+                Only returned if return_exploit is True
         '''
         # Recalculate epsilon
         fraction = min(1.0, self.trial_count / self.epsilon_steps)
@@ -76,6 +80,8 @@ class BaselineAgent(Agent):
             # Randomly make decisions
             for node in self.action_space:
                 action[node] = np.random.choice(self.action_space[node])
+        if return_exploit:
+            return action,exploit
         return action
 
     def exploit(self,state):

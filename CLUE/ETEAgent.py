@@ -45,7 +45,7 @@ class ETEAgent(Agent):
         else:
             self.exp_trials = exp_trials
 
-    def act(self,state,explore=True):
+    def act(self,state,explore=True,return_exploit=False):
         '''
         Select an action given a state
 
@@ -53,8 +53,12 @@ class ETEAgent(Agent):
             state - dict mapping state variable names to values
             explore - whether or not the agent should explore
                 default: True
+            return_exploit = whether or not the function will return the value of exploit
+                default: False
         Output:
             action - dict mapping action variable names to values
+            exploit - boolean. If True, the agent exploited, else explored.
+                Only returned if return_exploit is True
         '''
         if self.trial_count < self.exp_trials:
             exploit = False
@@ -72,6 +76,8 @@ class ETEAgent(Agent):
             # Randomly make decisions
             for node in self.action_space:
                 action[node] = np.random.choice(self.action_space[node])
+        if return_exploit:
+            return action,exploit
         return action
 
     def exploit(self,state):

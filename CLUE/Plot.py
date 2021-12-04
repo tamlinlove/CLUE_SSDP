@@ -436,7 +436,7 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
     x = np.arange(trials)
     file_dir = fig_path+"agent_comparison/"
     os.makedirs(os.path.dirname(file_dir), exist_ok=True)
-    fig, ax = plt.subplots(ncols=len(panels),figsize=(8*len(panels),4.8))
+    fig, ax = plt.subplots(ncols=len(panels),figsize=(4*len(panels),4.8))
     if len(panels)==1:
         ax = [ax]
     plot_list = []

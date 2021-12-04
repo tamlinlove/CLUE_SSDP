@@ -35,19 +35,34 @@ class UCBAgent(Agent):
         self.alpha = alpha
         self.c = c
 
-    def act(self,state):
+    def act(self,state,return_exploit=False):
         '''
         Select an action given a state
 
         Input:
             state - dict mapping state variable names to values
+            return_exploit = whether or not the function will return the value of exploit
+                default: False
         Output:
             action - dict mapping action variable names to values
+            exploit - boolean. If True, the agent exploited, else explored.
+                Only returned if return_exploit is True
         '''
-        state_values,indices = self.score_state(state) # Score each action for the state
-        best_index = indices[np.argmax(state_values)] # Select the best scoring action index
+        ucb_vals,utility_vals,indices = self.score_state(state,return_ucb=True) # Score each action for the state
+        best_index = indices[np.argmax(ucb_vals)] # Select the best scoring action index
         best_action = self.utility.index_to_assignment(best_index) # Find corresponding action
-        return best_action
+        action = {}
+        for node in self.action_space:
+            action[node] = best_action[node]
+        if return_exploit:
+            optimal_index = indices[np.argmax(utility_vals)]
+            if optimal_index == best_index:
+                # UCB chose the best action
+                return action,True
+            else:
+                # UCB chose a suboptimal action
+                return action,False
+        return action
 
     def learn(self,state,actions,reward):
         '''
@@ -80,14 +95,18 @@ class UCBAgent(Agent):
         self.utility = Utility(self.domains,self.Q0,self.alpha) # Reset utility
         self.visits = StateTable(self.domains,default_value=1) # Reset visit counts
 
-    def score_state(self,state):
+    def score_state(self,state,return_ucb=False):
         '''
         Calculates the UCB score for each action for a given state
 
         Input:
             state - dict mapping state variable names to values
+            return_ucb - bool. If True, will return UCB score as well as utility score
+                default: False
         Output:
-            state_values - list of values
+            ucb_vals - list of UCB values (i.e. Q(s,a) + c sqrt(log(t)/N(s,a)) for each a)
+                Only returned if return_ucb is True
+            utility_vals - list of utility values (i.e. Q(s,a) for each a)
             indices - list of indices corresponding to each value
         '''
         combinations = list(product(*self.action_space.values())) # All possible actions
@@ -100,10 +119,14 @@ class UCBAgent(Agent):
                 state_copy[keys[i]] = combo[i]
             indices.append(self.utility.assignment_to_index(state_copy))
         # Get all values
-        state_values = []
+        ucb_vals = []
+        utility_vals = []
         for index in indices:
             exploit_term = self.utility.values[index]
+            utility_vals.append(exploit_term)
             explore_term = self.c*(np.sqrt(np.log(self.trial_count+1)/(self.visits.values[index])))
             score = exploit_term + explore_term
-            state_values.append(score)
-        return state_values,indices
+            ucb_vals.append(score)
+        if return_ucb:
+            return ucb_vals,utility_vals,indices
+        return utility_vals,indices

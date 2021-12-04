@@ -17,9 +17,6 @@ class ClueAgent(Agent):
         trials,
         agent=None,
         initial_estimate=[1,1],
-        eps_start=1,
-        eps_end=0,
-        eps_fraction=0.8,
         threshold=None,
         no_bayes=False,
         regular_update=True,
@@ -63,10 +60,6 @@ class ClueAgent(Agent):
         self.regular_update = regular_update
         self.recency = recency
 
-        self.eps_start = eps_start
-        self.eps_end = eps_end
-        self.eps_fraction = eps_fraction
-
         self.trials = trials
 
         if no_bayes:
@@ -97,7 +90,7 @@ class ClueAgent(Agent):
             raise Exception(error_message)
         self.history = {"rho":{}}
 
-    def act(self,state,explore=True):
+    def act(self,state):
         '''
         Select an action given a state
 
@@ -108,20 +101,11 @@ class ClueAgent(Agent):
         Output:
             action - dict mapping action variable names to values
         '''
-        # Recalculate epsilon
-        fraction = min(1.0, self.trial_count / self.epsilon_steps)
-        self.epsilon = self.eps_start + fraction * (self.eps_end - self.eps_start)
 
         # Check if agent has been advised previously
         advice_dict = self.aggregate_advice(state)
         advice_given = bool(advice_dict)
         best_action = None
-
-        # Choose whether to exploit or explore
-        if explore:
-            exploit = np.random.choice([True,False],p=[1-self.epsilon,self.epsilon]) # Maybe explore
-        else:
-            exploit = True # Always exploit
 
         for expert in self.state_table_dict:
             if self.recency is not None:
@@ -137,8 +121,10 @@ class ClueAgent(Agent):
                 self.rho[expert] = rho
                 self.history["rho"][expert].append(rho) # Add new rho to rho history
 
+        base_action,exploit = self.agent.act(state,return_exploit=True)
+
         if exploit:
-            return self.agent.act(state,explore=False)
+            return base_action
         else:
             # Calculate trust in each expert
             if advice_given:
@@ -193,11 +179,7 @@ class ClueAgent(Agent):
             if trust and best_action is not None: # Follow advice
                 return best_action
             else: # Don't follow advice
-                action = {}
-                # Randomly make decisions
-                for node in self.action_space:
-                    action[node] = np.random.choice(self.action_space[node])
-                return action
+                return base_action
 
     def aggregate_advice(self,state):
         '''
@@ -300,8 +282,6 @@ class ClueAgent(Agent):
         '''
         self.agent.reset() # Reset agent
         self.trial_count = 0 # Reset number of trials
-        self.epsilon = self.eps_start # Reset epsilon
-        self.epsilon_steps = self.eps_fraction * float(self.trials) # Reset epsilon decay
         self.history = {"rho":{}} # Reset history
         self.state_table_dict = {} # Reset advice table
         self.beta_parameters = {} # Reset reliability estimates

@@ -38,7 +38,7 @@ class NaiveAdviceFollower(Agent):
                 error_message = "Invalid agent passed to NAF"
                 raise Exception(error_message)
 
-    def act(self,state,explore=True):
+    def act(self,state):
         '''
         Select an action given a state
 
@@ -52,7 +52,7 @@ class NaiveAdviceFollower(Agent):
         # Check if we have been advised previously
         advice_list = self.aggregate_advice(state)
         if len(advice_list) == 0: # No advice received thusfar, act normally
-            return self.agent.act(state,explore)
+            return self.agent.act(state)
         else: # Advice received for this state
             return np.random.choice(advice_list) # Randomly choose from given advice
 
