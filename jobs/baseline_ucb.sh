@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=CLUE
-#SBATCH --output=res_beta_param.txt
+#SBATCH --output=res_baseline_ucb.txt
 #SBATCH --ntasks=1
 #SBATCH --partition=batch
 
