@@ -1,6 +1,5 @@
 import CLUE
 import numpy as np
-import matplotlib.pyplot as plt
 
 experiment_name = "degrading_expert_test"
 '''

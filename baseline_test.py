@@ -17,7 +17,7 @@ env = CLUE.make("RandomSSDP",num_chance=10,num_decision=3,reward_range=reward_ra
 EXPERIMENT DETAILS
 '''
 trials = 80000 # Number of trials each run
-runs = 10 # Number of runs, each run the agent learns from scratch
+runs = 100 # Number of runs, each run the agent learns from scratch
 
 if len(sys.argv) == 0:
     test = "Epsilon Greedy"
@@ -29,7 +29,6 @@ AGENTS
 '''
 # Create some agents, store in dictionary
 agents = {}
-test = "UCB"
 if test == "Epsilon Greedy":
     experiment_name = "epsilon_greedy_test"
     agents["Baseline Agent"] = CLUE.BaselineAgent(env,trials)
