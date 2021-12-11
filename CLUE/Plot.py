@@ -425,7 +425,13 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
     agent_labels = []
     for agent in agents:
         agent_names[agent] = agent.replace("_"," ")
-        agent_labels.append(agent_names[agent])
+        if agent_names[agent] == "Baseline Agent":
+            agent_labels.append("Epsilon Greedy Baseline Agent")
+        elif agent_names[agent] == "ETE Baseline Agent":
+            agent_labels.append("Adaptive Greedy Baseline Agent")
+        else:
+            agent_labels.append(agent_names[agent])
+
 
     if len(panels) == 0:
         panels = ["No Expert"]

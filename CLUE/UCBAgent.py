@@ -124,7 +124,7 @@ class UCBAgent(Agent):
         for index in indices:
             exploit_term = self.utility.values[index]
             utility_vals.append(exploit_term)
-            explore_term = self.c*(np.sqrt(np.log(self.trial_count+1)/(self.visits.values[index])))
+            explore_term = self.c*(np.sqrt(2*np.log(self.trial_count+1)/(self.visits.values[index])))
             score = exploit_term + explore_term
             ucb_vals.append(score)
         if return_ucb:

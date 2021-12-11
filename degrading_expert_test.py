@@ -8,14 +8,14 @@ ENVIRONMENT
 # Create a random environment with 7 state variables (|S|=128)
 # and 3 action variables (|A|=8)
 reward_range = [-1,1]
-env = CLUE.make("RandomSSDP",num_chance=10,num_decision=3,reward_range=reward_range)
+env = CLUE.make("RandomSSDP",num_chance=7,num_decision=3,reward_range=reward_range)
 
 
 '''
 EXPERIMENT DETAILS
 '''
 #trials = 10000 # Number of trials each run
-trials = 80000
+trials = 10000
 runs = 100 # Number of runs, each run the agent learns from scratch
 
 
@@ -66,6 +66,6 @@ panel_titles = {
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
 # Plot graphs
-#CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,reward_range=reward_range)
+CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,reward_range=reward_range)
 # Plot Rhos
-#CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
+CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)

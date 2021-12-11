@@ -19,7 +19,7 @@ EXPERIMENT DETAILS
 trials = 80000 # Number of trials each run
 runs = 100 # Number of runs, each run the agent learns from scratch
 
-if len(sys.argv) == 0:
+if len(sys.argv) == 1:
     test = "Epsilon Greedy"
 else:
     test = sys.argv[1]
@@ -41,7 +41,7 @@ elif test == "ETE":
     naf_base = CLUE.ETEAgent(env,trials)
 elif test == "Adaptive Greedy":
     experiment_name = "adaptive_greedy_test"
-    agents["ETE Baseline Agent"] = CLUE.AdaptiveGreedyAgent(env,trials)
+    agents["Adaptive Greedy Baseline Agent"] = CLUE.AdaptiveGreedyAgent(env,trials)
     clue_base = CLUE.AdaptiveGreedyAgent(env,trials)
     naf_base = CLUE.AdaptiveGreedyAgent(env,trials)
 elif test == "UCB":
@@ -54,12 +54,6 @@ else:
     raise Exception(error_message)
 agents["CLUE"] = CLUE.ClueAgent(env,trials,agent=clue_base)
 agents["NAF"] = CLUE.NaiveAdviceFollower(env,agent=naf_base)
-
-#agents["Adaptive Greedy Baseline Agent"] = CLUE.AdaptiveGreedyAgent(env,trials)
-#agents["ETE Baseline Agent"] = CLUE.ETEAgent(env,trials)
-#agents["UCB Baseline Agent"] = CLUE.UCBAgent(env,c=0.25)
-#agents["Baseline Agent"] = CLUE.BaselineAgent(env,trials)
-
 
 
 '''
@@ -97,6 +91,6 @@ panel_titles = {
 "Varied_Panel":"Varied Panel\n($P_{true}=\\{0,0.1,0.25,0.5,0.75,0.9,1\\}$)"
 }
 # Plot graphs
-#CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,reward_range=reward_range)
+CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,reward_range=reward_range)
 # Plot Rhos
-#CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
+CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
