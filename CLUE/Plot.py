@@ -6,6 +6,23 @@ import matplotlib.font_manager
 import statsmodels.api as sm # for smoothing
 from mpl_toolkits.axes_grid1 import AxesGrid
 
+
+# Colours
+my_colours = {
+    "Adaptive Greedy Baseline Agent":"blue",
+    "Baseline Agent":"blue",
+    "CLUE":"green",
+    "Decayed Reliance":"pink",
+    "ETE Baseline Agent":"blue",
+    "LinUCB Baseline Agent":"blue",
+    "NAF":"orange",
+    "Naive CLUE":"lime",
+    "PRQ":"red",
+    "TS Baseline Agent":"blue",
+    "True Policy Agent":"cyan",
+    "UCB Baseline Agent":"blue",
+}
+
 # For Latex
 plt.rcParams.update({
     "text.usetex": True
@@ -427,8 +444,6 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
         agent_names[agent] = agent.replace("_"," ")
         if agent_names[agent] == "Baseline Agent":
             agent_labels.append("Epsilon Greedy Baseline Agent")
-        elif agent_names[agent] == "ETE Baseline Agent":
-            agent_labels.append("Adaptive Greedy Baseline Agent")
         else:
             agent_labels.append(agent_names[agent])
 
@@ -452,12 +467,12 @@ def plot_reward_comparison(base_path,trials,accepted_panels=None,panel_titles=No
             agent_name = agent_names[agent]
             if takes_advice[agent]:
                 if fill:
-                    ax[i].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
-                l, = ax[i].plot(x,reward_means[agent][panel],label=agent_name)
+                    ax[i].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2, color=my_colours[agent])
+                l, = ax[i].plot(x,reward_means[agent][panel],label=agent_name, color=my_colours[agent])
             else:
                 if fill:
-                    ax[i].fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2)
-                l, = ax[i].plot(x,reward_means[agent],label=agent_name)
+                    ax[i].fill_between(x, reward_low[agent], reward_high[agent], alpha=0.2, color=my_colours[agent])
+                l, = ax[i].plot(x,reward_means[agent],label=agent_name, color=my_colours[agent])
             plot_list.append(l)
             ax[i].set_xlabel("Trials")
             ax[i].set_ylabel("Average Reward")
@@ -641,12 +656,12 @@ def plot_panel_comparison(base_path,trials,accepted_panels=None,panel_titles=Non
         for i in range(len(panels)):
             panel = accepted_panels[i]
             if fill:
-                ax[j].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2)
-            l, = ax[j].plot(x,reward_means[agent][panel],label=panel)
+                ax[j].fill_between(x, reward_low[agent][panel], reward_high[agent][panel], alpha=0.2, color=my_colours[agent])
+            l, = ax[j].plot(x,reward_means[agent][panel],label=panel, color=my_colours[agent])
             plot_list.append(l)
         if fill:
-            ax[j].fill_between(x, reward_low["Baseline Agent"], reward_high["Baseline Agent"], alpha=0.2)
-        l, = ax[j].plot(x,reward_means["Baseline Agent"],label="Baseline Agent")
+            ax[j].fill_between(x, reward_low["Baseline Agent"], reward_high["Baseline Agent"], alpha=0.2, color=my_colours[agent])
+        l, = ax[j].plot(x,reward_means["Baseline Agent"],label="Baseline Agent", color=my_colours[agent])
         plot_list.append(l)
         ax[j].set_xlabel("Trials")
         ax[j].set_ylabel("Average Reward")

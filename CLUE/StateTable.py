@@ -1,14 +1,20 @@
+import numpy as np
+
 class StateTable:
     '''
     Data structure for recording advice received by an agent
     '''
-    def __init__(self,domain,default_value=None):
+    def __init__(self,domain,default_value=None,random_init_vals=None):
         '''
         Initialise state table
 
         Input:
             domain - dict mapping node name to domain
-            default_value - dfeault value stored in table
+            default_value - default value stored in table
+                only used if random_init_vals is None
+                default: None
+            random_init_vals - list of values used to randomly initialise StateTable
+                If None, everything is given default value
                 default: None
         '''
         self.domain = domain
@@ -21,8 +27,12 @@ class StateTable:
             self.size *= len(self.domain[self.nodes[i]]) # Offset by size of domain
         # Fill in values
         self.values = []
-        for i in range(self.size):
-            self.values.append(default_value)
+        if random_init_vals is not None:
+            for i in range(self.size):
+                self.values.append(np.random.choice(random_init_vals))
+        else:
+            for i in range(self.size):
+                self.values.append(default_value)
 
     def __str__(self):
         '''

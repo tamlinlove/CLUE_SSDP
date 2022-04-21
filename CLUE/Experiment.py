@@ -15,6 +15,7 @@ from PRQAgent import PRQAgent
 from RandomSSDP import RandomSSDP
 
 from Panel import Panel
+from NonuniformPanel import NonuniformPanel
 from PartiallyReliableExpert import PartiallyReliableExpert
 
 # Dict mapping agent name to whether or not they take panel advice
@@ -146,6 +147,31 @@ def make_agents(agent_list,env,trials,**kwargs):
         elif agent == "True Policy Agent":
             agents[agent] = TruePolicyAgent(env,**kwargs)
     return agents
+
+def make_panels_nonuniform(panel_dict,env,regions,mu=10,gamma=0.01):
+    '''
+    Make a list of panels of nonuniform unreliable experts
+
+    Input:
+        panel_dict - dict mapping panel name to list of rhos, each of which is a list of true reliabilities
+        env - instance of InfluenceDiagram class representing environment
+        regions - instance of StateTable mapping state to region (a number, the index of the rho to be used)
+        mu - interval parameter (number of trials between advice givings)
+            default: 10
+        gamma - tolerance parameter (regret over past trials since advice must be greater than gamma)
+            default: 0.01
+
+    Output:
+        panels - list of Panel objects
+
+    Todo:
+        allow for each expert in a panel to have different parameters
+    '''
+    oracle = TruePolicyAgent(env) # Oracle used to retrieve best advice for each expert
+    panels = [] # List of panels
+    for panel in panel_dict:
+        panels.append(NonuniformPanel(env,panel,oracle,panel_dict[panel],regions,mu,gamma)) # Create nonuniform panel object
+    return panels
 
 def make_panels(panel_dict,env,mu=10,gamma=0.01):
     '''

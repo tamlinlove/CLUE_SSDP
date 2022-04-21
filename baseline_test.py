@@ -74,10 +74,10 @@ RUN EXPERIMENT
 '''
 # Run the panel comparison experiment
 print("======Running experiment======")
-rewards,rhos = CLUE.Experiment.panel_comparison(env,agents,panels,trials,runs,display=True)
+#rewards,rhos = CLUE.Experiment.panel_comparison(env,agents,panels,trials,runs,display=True)
 # Save results to csv
 print("======Saving results======")
-CLUE.Experiment.save_panel_comparison_to_csv(rewards,rhos,env.name,agents,panels,trials,runs,directory=experiment_name)
+#CLUE.Experiment.save_panel_comparison_to_csv(rewards,rhos,env.name,agents,panels,trials,runs,directory=experiment_name)
 '''
 PLOT RESULTS
 '''
@@ -93,4 +93,4 @@ panel_titles = {
 # Plot graphs
 CLUE.Plot.plot_reward_comparison(base_path,trials,panel_titles=panel_titles,reward_range=reward_range)
 # Plot Rhos
-CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
+#CLUE.Plot.plot_rhos(base_path,trials,panel_titles=panel_titles)
