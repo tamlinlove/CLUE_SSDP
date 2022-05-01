@@ -19,7 +19,6 @@ class NonuniformUnreliableExpert(Expert):
             rhos - a list of numbers in [0,1], corresponding to the reliability of an expert in the region
                 denoted by the index
             regions - instance of StateTable, recording the number of a region of the state space for each state
-            num_regions - the number of distinct regions (should match the size of rhos and the range of regions)
             mu - interval parameter (number of trials between advice givings)
                 default: 10
             gamma - tolerance parameter (regret over past trials since advice must be greater than gamma)

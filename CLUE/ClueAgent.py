@@ -273,6 +273,15 @@ class ClueAgent(Agent):
                     self.recent_rho[expert] = (1-self.recency) * self.recent_rho[expert] + count_update * self.recency
 
 
+    def num_models(self):
+        '''
+        Return the number of models the agent has of each expert
+        0 for any agent that doesn't model an expert
+        1 for uniform CLUE
+        2+ for nonuniform CLUE
+        '''
+        return 1
+
     def reset(self,panel):
         '''
         Reset the agent for a fresh run

@@ -11,6 +11,7 @@ from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from PRQAgent import PRQAgent
+from NonuniformClueAgent import NonuniformClueAgent
 
 from RandomSSDP import RandomSSDP
 
@@ -32,6 +33,7 @@ takes_advice = {
     "TS Baseline Agent":False,
     "True Policy Agent":False,
     "UCB Baseline Agent":False,
+    "Nonuniform CLUE":True,
 }
 
 # Dict mapping agent name to whether or not they store rho history
@@ -48,6 +50,7 @@ keeps_rho_history = {
     "TS Baseline Agent":False,
     "True Policy Agent":False,
     "UCB Baseline Agent":False,
+    "Nonuniform CLUE":False
 }
 
 def expert_param_test(env,agents,panel_dict,mus,gammas,trials,runs,display=False,display_interval=10):
@@ -111,7 +114,7 @@ def expert_param_test(env,agents,panel_dict,mus,gammas,trials,runs,display=False
     return regret
 
 
-def make_agents(agent_list,env,trials,**kwargs):
+def make_agents(agent_list,env,trials,regions=None,num_regions=None,**kwargs):
     '''
     Take in a list of agent names and return a dict of agents
 
@@ -146,6 +149,11 @@ def make_agents(agent_list,env,trials,**kwargs):
             agents[agent] = PRQAgent(env,trials=trials,**kwargs)
         elif agent == "True Policy Agent":
             agents[agent] = TruePolicyAgent(env,**kwargs)
+        elif agent == "Nonuniform CLUE":
+            if regions is None or num_regions is None:
+                error_message = "Must specify regions StateTable and number of regions for nonuniform CLUE"
+                raise Exception(error_message)
+            agents[agent] = NonuniformClueAgent(env,trials,num_regions,regions,**kwargs)
     return agents
 
 def make_panels_nonuniform(panel_dict,env,regions,mu=10,gamma=0.01):
@@ -214,6 +222,7 @@ def make_panel_comparison_dicts(agents,panels,trials,runs):
         rhos - dict for storing rhos
             if agent takes advice and stores rhos, rhos[agent][panel][expert] = zero array of size runs x trials
             otherwise, rhos[agent] is not specified
+            if regions is specified, rhos[agent][panel][expert][region] = zero array of size runs x trials
     '''
     rewards = {}
     rhos = {}
@@ -228,7 +237,14 @@ def make_panel_comparison_dicts(agents,panels,trials,runs):
                 if agents[agent].get_history() is not None:
                     rhos[agent][panel.name] = {}
                     for expert in panel.experts:
-                        rhos[agent][panel.name][expert] = np.zeros((runs,trials))
+                        if agents[agent].num_models() == 1:
+                            rhos[agent][panel.name][expert] = np.zeros((runs,trials))
+                        else:
+                            rhos[agent][panel.name][expert] = []
+                            for i in range(agents[agent].num_models()):
+                                rhos[agent][panel.name][expert].append(np.zeros((runs,trials)))
+                            
+
         else:
             rewards[agent] = np.zeros((runs,trials))
     return rewards,rhos
@@ -268,7 +284,12 @@ def panel_comparison(env,agents,panels,trials,runs,display=False,display_interva
                     history = agents[agent].get_history()
                     if history is not None:
                         for expert in panel.experts:
-                            rhos[agent][panel.name][expert][r,:] = history["rho"][expert]
+                            if agents[agent].num_models() == 1:
+                                rhos[agent][panel.name][expert][r,:] = history["rho"][expert]
+                            else:
+                                for i in range(agents[agent].num_models()):
+                                    rhos[agent][panel.name][expert][i][r,:] = history["rho"][expert][i]
+
         else: # Panels don't matter
             if display:
                 print("==="+agent+"===")
@@ -605,12 +626,21 @@ def save_panel_comparison_to_csv(rewards,rhos,env_name,agents,panels,trials,runs
         if agents[agent].get_history() is not None:
             for panel in panels:
                 for expert in panel.experts:
-                    f = open(file_dir+agent+"_"+panel.name+"_"+expert+".csv","w",newline="")
-                    writer = csv.writer(f)
-                    writer.writerow([agent,panel.name,expert])
-                    for run in range(runs):
-                        writer.writerow(rhos[agent][panel.name][expert][run,:])
-                    f.close()
+                    if agents[agent].num_models() == 1:
+                        f = open(file_dir+agent+"_"+panel.name+"_"+expert+".csv","w",newline="")
+                        writer = csv.writer(f)
+                        writer.writerow([agent,panel.name,expert])
+                        for run in range(runs):
+                            writer.writerow(rhos[agent][panel.name][expert][run,:])
+                        f.close()
+                    else:
+                        for i in range(agents[agent].num_models()):
+                            f = open("{}{}_{}_{}_{}.csv".format(file_dir,agent,panel.name,expert,str(i)),"w",newline="")
+                            writer = csv.writer(f)
+                            writer.writerow([agent,panel.name,expert,str(i)])
+                            for run in range(runs):
+                                writer.writerow(rhos[agent][panel.name][expert][i][run,:])
+                            f.close()
 
 def save_panel_comparison_random_envs_to_csv(rewards,rhos,num_chance,num_decision,agent_list,panel_dict,trials,runs,directory):
     env_name = "Random ("+str(num_chance)+","+str(num_decision)+")"

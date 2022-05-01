@@ -16,6 +16,7 @@ from TruePolicyAgent import TruePolicyAgent
 from BaselineAgent import BaselineAgent
 from NaiveAdviceFollower import NaiveAdviceFollower
 from ClueAgent import ClueAgent
+from NonuniformClueAgent import NonuniformClueAgent
 from DecayedRelianceAgent import DecayedRelianceAgent
 from BestCaseClueAgent import BestCaseClueAgent
 from PRQAgent import PRQAgent
@@ -28,9 +29,11 @@ from ETEAgent import ETEAgent
 # Experts
 from Expert import Expert
 from UnreliableExpert import UnreliableExpert
+from NonuniformUnreliableExpert import NonuniformUnreliableExpert
 from PartiallyReliableExpert import PartiallyReliableExpert
 from DegradingExpert import DegradingExpert
 from Panel import Panel
+from NonuniformPanel import NonuniformPanel
 
 # Helpers
 from Utility import Utility

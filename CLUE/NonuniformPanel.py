@@ -33,5 +33,6 @@ class NonuniformPanel(Panel):
             expert_count = 0
             for rho_list in rhos:
                 self.experts[str(expert_count)] = NonuniformUnreliableExpert(env,oracle,rho_list,regions,mu=mu,gamma=gamma)
+                expert_count += 1
         else:
             self.experts = experts

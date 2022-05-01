@@ -21,6 +21,7 @@ my_colours = {
     "TS Baseline Agent":"blue",
     "True Policy Agent":"cyan",
     "UCB Baseline Agent":"blue",
+    "Nonuniform CLUE":"fuchsia"
 }
 
 # For Latex
